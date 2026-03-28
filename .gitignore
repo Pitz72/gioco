@@ -2,7 +2,6 @@
 # DIPENDENZE
 # =============================================
 node_modules/
-package-lock.json
 
 # =============================================
 # OUTPUT DI BUILD (Vite, Electron, ecc.)
