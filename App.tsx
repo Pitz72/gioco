@@ -892,9 +892,18 @@ const App: React.FC = () => {
         return <GameOverScreen onRestart={() => setGameState(GameState.StartMenu)} />;
       case GameState.Playing:
         return (
-          <div className="flex h-full" style={{ fontSize: '1.35rem' }}>
-            {/* Area terminale principale */}
-            <div className="flex flex-col flex-grow overflow-hidden">
+          <div style={{ display: 'flex', flex: 1, minHeight: 0, fontSize: '1.35rem' }}>
+            {/* Area terminale principale — con padding proprio */}
+            <div style={{
+              display:       'flex',
+              flexDirection: 'column',
+              flexGrow:      1,
+              overflow:      'hidden',
+              minWidth:      0,
+              paddingLeft:   '2.2rem',
+              paddingRight:  '2.2rem',
+              paddingBottom: '1.2rem',
+            }}>
               <TerminalOutput output={output} />
               <CommandLine
                 onSubmit={submitCommand}
@@ -904,7 +913,7 @@ const App: React.FC = () => {
                 setHistoryIndex={setHistoryIndex}
               />
             </div>
-            {/* Sidebar destra — appare solo se almeno un widget è attivo */}
+            {/* Sidebar destra — tocca il bordo, altezza piena */}
             <GameSidebar playerState={playerState} />
           </div>
         );
@@ -953,7 +962,8 @@ const App: React.FC = () => {
             overflow:      'hidden',
             display:       'flex',
             flexDirection: 'column',
-            padding:       '1.6rem 2.2rem',
+            /* Nessun padding orizzontale qui: la sidebar deve toccare il bordo */
+            paddingTop:    '1.6rem',
             boxShadow:     'inset 0 0 80px rgba(0,0,0,0.8), inset 0 0 20px rgba(51,255,0,0.03)',
           }}
         >
@@ -962,7 +972,7 @@ const App: React.FC = () => {
           <div className="crt-vignette" />
           <div className="scanline"     />
 
-          <div style={{ color: 'var(--p-main)', flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          <div style={{ color: 'var(--p-main)', flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minHeight: 0 }}>
             {renderGameContent()}
           </div>
 
