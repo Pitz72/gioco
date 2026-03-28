@@ -24,7 +24,12 @@ const renderTextContent = (content: string): React.ReactNode => {
             const rest = content.slice(nnIdx);
             return (
                 <>
-                    <span style={{ color: 'var(--p-bright)', letterSpacing: '0.12em', display: 'block' }}>
+                    <span className="phosphor-ghost" style={{
+                        color: 'var(--p-bright)',
+                        letterSpacing: '0.14em',
+                        display: 'block',
+                        marginBottom: '0.2em',
+                    }}>
                         {firstLine}
                     </span>
                     {rest}
@@ -93,7 +98,7 @@ const TerminalOutput: React.FC<TerminalOutputProps> = ({ output }) => {
   }, [output]);
 
   return (
-    <div className="flex-grow overflow-y-auto pr-2 no-scrollbar">
+    <div className="flex-grow overflow-y-auto pr-2 no-scrollbar glow-text-soft">
       {output.map((line, index) =>
         line.kind === 'html'
           ? <div key={index} className="whitespace-pre-wrap" style={{ color: 'var(--p-main)' }} dangerouslySetInnerHTML={{ __html: line.content }} />

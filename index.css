@@ -6,14 +6,37 @@
    Riferimento: VT100, Commodore PET, Hazeltine
    ═══════════════════════════════════════════════ */
 :root {
-  --p-bright:    #57ff2b;               /* testo in evidenza / highlight      */
-  --p-main:      #33ff00;               /* testo principale — fosforo P1      */
-  --p-dim:       #1a7a00;               /* testo secondario / dimmed          */
-  --p-glow-a:    rgba(51, 255,  0, 0.60); /* alone interno — caldo             */
-  --p-glow-b:    rgba(51, 255,  0, 0.22); /* alone medio                       */
-  --p-glow-c:    rgba(51, 255,  0, 0.07); /* alone diffuso — ione di persistenza*/
-  --bg-screen:   #030b02;               /* fondo schermo — nero con tinta CRT */
-  --border-crt:  #0d3d08;               /* bordo monitor                      */
+  /* Token originali — invariati */
+  --p-bright:    #57ff2b;
+  --p-main:      #33ff00;
+  --p-dim:       #1a7a00;
+  --p-glow-a:    rgba(51, 255,  0, 0.60);
+  --p-glow-b:    rgba(51, 255,  0, 0.22);
+  --p-glow-c:    rgba(51, 255,  0, 0.07);
+  --bg-screen:   #030b02;
+  --border-crt:  #0d3d08;
+
+  /* Token Analog Tactile Horror (dal design system) */
+  --surface:              #0b1608;
+  --surface-container:    #172214;
+  --surface-container-low:#131e10;
+  --surface-container-high:#222d1e;
+  --surface-container-highest: #2c3828;
+  --surface-variant:      #2c3828;
+  --surface-bright:       #313c2c;
+  --primary-container:    #33ff00;
+  --primary-fixed:        #79ff5a;
+  --primary-fixed-dim:    #2de500;
+  --on-primary:           #053900;
+  --on-primary-container: #127100;
+  --outline-variant:      #3c4b35;
+  --error:                #ffb4ab;
+  --error-container:      #93000a;
+  --secondary-fixed-dim:  #3be400;
+
+  /* Bezel — cornice fisica del monitor (potenziata) */
+  --bezel-bg:    #111411;
+  --bezel-border:#1c231c;
 }
 
 body {
@@ -23,7 +46,7 @@ body {
 }
 
 /* ═══════════════════════════════════════════════
-   GLOW FOSFORO — applicato a tutto il testo
+   GLOW FOSFORO — testo con alone luminoso
    ═══════════════════════════════════════════════ */
 .phosphor-text {
   color: var(--p-main);
@@ -33,16 +56,37 @@ body {
     0 0 20px var(--p-glow-c);
 }
 
+/* Glow intenso per titoli e header */
+.glow-text {
+  text-shadow:
+    0 0 4px  var(--p-glow-a),
+    0 0 12px var(--p-glow-b),
+    0 0 28px var(--p-glow-c);
+}
+
+/* Glow leggero per testo narrativo */
+.glow-text-soft {
+  text-shadow:
+    0 0 3px  rgba(51, 255, 0, 0.45),
+    0 0 8px  rgba(51, 255, 0, 0.15);
+}
+
+/* Ghosting — persistenza del fosforo sul testo (offset 2px come da DESIGN.md) */
+.phosphor-ghost {
+  text-shadow:
+    2px 2px 0px rgba(26, 122, 0, 0.4),
+    0 0 4px  var(--p-glow-a),
+    0 0 10px var(--p-glow-b);
+}
+
 /* ═══════════════════════════════════════════════
-   SCANLINES — righe statiche del fascio CRT
-   + banda mobile che simula il refresh del monitor
+   SCANLINES — righe statiche + banda di refresh
    ═══════════════════════════════════════════════ */
 .scanline {
   position: absolute;
   inset: 0;
   pointer-events: none;
   z-index: 20;
-  /* Scanlines statiche: 2px visibili + 2px ombra = periodo 4px */
   background: repeating-linear-gradient(
     0deg,
     transparent          0px,
@@ -52,7 +96,7 @@ body {
   );
 }
 
-/* Banda di refresh — luce lieve che scorre verso il basso come il pennello CRT */
+/* Banda di refresh */
 .scanline::after {
   content: '';
   position: absolute;
@@ -90,7 +134,7 @@ body {
 }
 
 /* ═══════════════════════════════════════════════
-   GRANA / RUMORE — disturbo impercettibile del tubo
+   GRANA / RUMORE — disturbo analogico del tubo
    ═══════════════════════════════════════════════ */
 .crt-noise {
   position: absolute;
@@ -114,9 +158,7 @@ body {
 }
 
 /* ═══════════════════════════════════════════════
-   CURSORE — persistenza del fosforo al lampeggio
-   Il cursore non si spegne di colpo: decade lentamente
-   come la luminescenza del fosforo dopo l'eccitazione
+   CURSORE FOSFORO — persistenza al lampeggio
    ═══════════════════════════════════════════════ */
 @keyframes phosphor-blink {
   0%    { opacity: 1;    box-shadow: 0 0 6px var(--p-glow-a), 0 0 14px var(--p-glow-b); }
@@ -133,8 +175,7 @@ body {
 }
 
 /* ═══════════════════════════════════════════════
-   SFARFALLIO — flicker lievissimo, quasi impercettibile
-   Simula la stabilità imperfetta del trasformatore CRT
+   SFARFALLIO — flicker lievissimo del trasformatore
    ═══════════════════════════════════════════════ */
 @keyframes flicker {
   0%,  91%, 94%, 97%, 100% { opacity: 1;    }
@@ -151,10 +192,168 @@ body {
 }
 
 /* ═══════════════════════════════════════════════
-   SCROLLBAR NASCOSTA
+   FLICKER ATTIVO — elementi UI attivi (pulsanti selezionati)
+   ═══════════════════════════════════════════════ */
+@keyframes flicker-active {
+  0%   { opacity: 0.97; }
+  5%   { opacity: 0.95; }
+  10%  { opacity: 0.90; }
+  15%  { opacity: 0.99; }
+  30%  { opacity: 0.95; }
+  50%  { opacity: 0.98; }
+  70%  { opacity: 0.95; }
+  80%  { opacity: 0.99; }
+  90%  { opacity: 0.92; }
+  100% { opacity: 0.98; }
+}
+
+.flicker-active {
+  animation: flicker-active 0.15s infinite;
+}
+
+/* ═══════════════════════════════════════════════
+   BEZEL — cornice monitor fisica (industrial heavy)
+   Simula il telaio metallico di una console di bordo
+   ═══════════════════════════════════════════════ */
+.bezel-screen {
+  box-shadow:
+    inset 0 0 80px rgba(0, 0, 0, 1),
+    inset 0 0 30px rgba(51, 255, 0, 0.08),
+    0 0 60px rgba(51, 255, 0, 0.04),
+    0 0 120px rgba(0, 0, 0, 0.9);
+}
+
+/* ═══════════════════════════════════════════════
+   AMBIENT BLOOM — alone diffuso dietro testo attivo
+   Simula la luce che si riversa sulla polvere del vetro CRT
+   ═══════════════════════════════════════════════ */
+.ambient-bloom {
+  position: relative;
+}
+.ambient-bloom::before {
+  content: '';
+  position: absolute;
+  inset: -4px -8px;
+  background: rgba(51, 255, 0, 0.05);
+  filter: blur(20px);
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* ═══════════════════════════════════════════════
+   HEADER CRT — barra superiore di stato
+   ═══════════════════════════════════════════════ */
+.crt-header {
+  background: linear-gradient(
+    to bottom,
+    #0f1a0d 0%,
+    #0b1608 100%
+  );
+  border-bottom: 1px solid var(--outline-variant);
+}
+
+/* Separatore header — sezione visiva */
+.header-divider {
+  display: inline-block;
+  width: 48px;
+  height: 2px;
+  background: var(--surface-container-highest);
+  box-shadow: 0 0 6px rgba(51, 255, 0, 0.2);
+  vertical-align: middle;
+  margin: 0 12px;
+}
+
+/* ═══════════════════════════════════════════════
+   FKEY BAR — stile industrial heavy (Analog Tactile)
+   ═══════════════════════════════════════════════ */
+.fkey-bar {
+  background: linear-gradient(
+    to top,
+    #080e07 0%,
+    #0b1608 100%
+  );
+  border-top: 2px solid rgba(51, 255, 0, 0.12);
+  box-shadow: 0 -4px 20px rgba(51, 255, 0, 0.06);
+}
+
+.fkey-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  cursor: pointer;
+  padding: 6px 8px;
+  transition: none; /* stepped — no smooth */
+  border-right: 1px solid rgba(51, 255, 0, 0.08);
+}
+
+.fkey-item:last-child {
+  border-right: none;
+}
+
+.fkey-item.active:hover {
+  background: rgba(51, 255, 0, 0.06);
+}
+
+.fkey-item.active:active {
+  background: rgba(51, 255, 0, 0.12);
+}
+
+.fkey-badge {
+  background: var(--p-main);
+  color: var(--bg-screen);
+  font-size: 0.55rem;
+  padding: 1px 4px;
+  font-family: 'Press Start 2P', monospace;
+  letter-spacing: 0.04em;
+}
+
+.fkey-badge.inactive {
+  background: var(--p-dim);
+  color: #040804;
+}
+
+.fkey-label {
+  font-size: 0.55rem;
+  font-family: 'Press Start 2P', monospace;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+/* ═══════════════════════════════════════════════
+   OVERLAY INDUSTRIAL — stile "surface container highest"
+   Gli overlay appaiono come layer più vicini al vetro
+   ═══════════════════════════════════════════════ */
+.overlay-crt {
+  background: rgba(3, 11, 2, 0.97);
+  border: 1px solid var(--outline-variant);
+  box-shadow:
+    inset 0 0 40px rgba(0, 0, 0, 0.8),
+    0 0 30px rgba(51, 255, 0, 0.04);
+}
+
+/* Bordo accent sinistra — stile card da DESIGN.md */
+.accent-border-left {
+  border-left: 3px solid var(--primary-container);
+}
+
+/* ═══════════════════════════════════════════════
+   SCROLLBAR — fosforo verde su nero profondo
    ═══════════════════════════════════════════════ */
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
+
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: #0b1608; }
+::-webkit-scrollbar-thumb {
+  background: var(--p-dim);
+  border-radius: 0; /* hard-edge */
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--p-main);
 }
