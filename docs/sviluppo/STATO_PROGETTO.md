@@ -1,7 +1,7 @@
 # STATO DEL PROGETTO — IL RELITTO SILENTE
-**Data:** 2026-03-22
+**Data:** 2026-03-28
 **Versione corrente:** 1.2.5
-**Fase:** Pre-distribuzione · test umano in corso
+**Fase:** Distribuzione attiva · build cross-platform operative (Windows / macOS / Linux)
 
 ---
 
@@ -152,18 +152,25 @@ Nessuno di critico. Note minori:
 
 ---
 
-## 9. Cosa manca prima della distribuzione
+## 9. Distribuzione — piattaforme ufficiali
 
-**Non è mancante alcunché dal punto di vista funzionale.** Ciò che resta è:
+| Piattaforma | Formato | Stato | Note |
+|---|---|---|---|
+| 🪟 Windows | `.exe` NSIS | ✅ Ufficiale | Installazione guidata |
+| 🐧 Linux | `.AppImage` | ✅ Ufficiale (da v1.2.5) | Portabile, nessuna installazione |
+| 🍎 macOS | `.dmg` | ✅ Ufficiale (da v1.2.5) | Non firmato — tasto destro → Apri |
 
-1. **Test umano** (in corso) — verifica soggettiva dell'esperienza, in particolare:
-   - Audio ambientale su macchina reale (verifica assenza di click/pop)
-   - Pausa e impostazioni audio su Electron packaged
-   - Percorso completo senza guida
+**Pipeline CI/CD:** GitHub Actions (`.github/workflows/build-release.yml`)
+- Build automatica su push tag `vX.Y.Z`
+- Build manuale dal pannello GitHub Actions
+- Artifact: `IlRelittoSilente-${version}-${os}.${ext}`
 
-2. **Build installer** — `npm run electron:build` → `.exe` in `/release`
+**Percorsi salvataggi nativi (cross-platform via `app.getPath('userData')`):**
+- Windows: `%APPDATA%\Il Relitto Silente\saves\`
+- macOS: `~/Library/Application Support/Il Relitto Silente/saves/`
+- Linux: `~/.config/Il Relitto Silente/saves/`
 
-3. **Verifica extra-files** — `docs/giocatore/LEGGIMI.txt` e `docs/giocatore/SOLUZIONE.md` sono configurati in `package.json` come `extraFiles` e saranno inclusi nell'installer
+**Extra-files distribuiti:** `LEGGIMI.txt` (win e linux). Escluso dal .app bundle macOS.
 
 ---
 
@@ -214,8 +221,8 @@ Nessuno di critico. Note minori:
 | v1.2.2 | Fix preposizione: PARTITA SALVATA NELLO SLOT X (App.tsx) |
 | v1.2.3 | HINT: copertura in-room per Serra Morente, Santuario del Silenzio, Scriptorium, Arca della Memoria, Laboratori di Risonanza |
 | v1.2.4 | Tipografia italiana: trattini em dash, virgolette «» in santuarioDelSilenzio e arcaDellaMemoria, separatori scanner in arcaBiologica |
-| v1.2.5 | Revisione testuale: eliminazione cliché LLM (ozono, ronzio ×4, pungente, pesante) in 8 file stanza |
+| v1.2.5 | Revisione testuale: eliminazione cliché LLM (ozono, ronzio ×4, pungente, pesante) in 8 file stanza · **CI/CD: GitHub Actions cross-platform, macOS e Linux versioni ufficiali** |
 
 ---
 
-*Documento aggiornato il 2026-03-21. Da aggiornare dopo il test umano.*
+*Documento aggiornato il 2026-03-28.*
