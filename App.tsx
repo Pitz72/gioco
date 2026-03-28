@@ -405,6 +405,200 @@ const PaginatedScreen: React.FC<{
 
 
 /* ═══════════════════════════════════════════════
+   GAME SIDEBAR — pannello destro persistente
+   Contiene widget condizionali che appaiono solo
+   quando la meccanica relativa è stata attivata.
+   ═══════════════════════════════════════════════ */
+
+// Glifi alieni fissi per décor ALGO_TRADUTTORE
+const ALIEN_GLYPHS = ['Җ', 'Ѧ', 'Ѭ', 'Ӂ', 'Ԑ', 'Ԗ', 'Ԧ', 'Ԭ'];
+
+interface GameSidebarProps {
+  playerState: PlayerState;
+}
+
+const GameSidebar: React.FC<GameSidebarProps> = ({ playerState }) => {
+  const translationPct = (playerState.flags.translationProgress as number | undefined) ?? 0;
+  const hasTranslation = translationPct > 0;
+  const hasInventory   = playerState.inventory.length > 0;
+
+  // Se nulla da mostrare, la sidebar non occupa spazio
+  if (!hasTranslation && !hasInventory) return null;
+
+  const barFilled  = Math.round((translationPct / 100) * 10);
+  const barEmpty   = 10 - barFilled;
+
+  return (
+    <aside style={{
+      width:          '260px',
+      flexShrink:     0,
+      borderLeft:     '1px solid var(--outline-variant)',
+      background:     'var(--surface-container-low)',
+      display:        'flex',
+      flexDirection:  'column',
+      fontSize:       '0.6rem',
+      letterSpacing:  '0.06em',
+      overflowY:      'auto',
+      gap:            '0',
+    }}>
+
+      {/* ── WIDGET: ALGO_TRADUTTORE ── */}
+      {hasTranslation && (
+        <div style={{
+          borderBottom:  '1px solid var(--outline-variant)',
+          borderLeft:    '3px solid var(--primary-container)',
+          background:    'var(--surface-container-high)',
+          padding:       '0.9rem 0.8rem',
+        }}>
+          {/* Header widget */}
+          <div style={{
+            color:         'var(--primary-fixed)',
+            marginBottom:  '0.7rem',
+            fontSize:      '0.55rem',
+            letterSpacing: '0.1em',
+            display:       'flex',
+            alignItems:    'center',
+            gap:           '0.4rem',
+          }}>
+            <span style={{ opacity: 0.7 }}>⟁</span>
+            ALGO_TRADUTTORE
+          </div>
+
+          {/* Percentuale */}
+          <div style={{
+            display:        'flex',
+            justifyContent: 'space-between',
+            marginBottom:   '0.4rem',
+            fontSize:       '0.5rem',
+          }}>
+            <span style={{ color: 'var(--p-dim)' }}>MATRICE:</span>
+            <span style={{
+              color: translationPct === 100 ? 'var(--p-bright)' : 'var(--primary-container)',
+            }}>
+              {translationPct === 100 ? '██ COMPLETA ██' : `${translationPct}%`}
+            </span>
+          </div>
+
+          {/* Barra progresso */}
+          <div style={{
+            width:      '100%',
+            height:     '6px',
+            background: 'var(--surface-variant)',
+            marginBottom: '0.6rem',
+            position:   'relative',
+            overflow:   'hidden',
+          }}>
+            <div
+              className={translationPct < 100 ? 'flicker-active' : ''}
+              style={{
+                position:   'absolute',
+                top:        0,
+                left:       0,
+                height:     '100%',
+                width:      `${translationPct}%`,
+                background: translationPct === 100
+                  ? 'var(--p-bright)'
+                  : 'var(--primary-container)',
+                transition: 'none',
+                boxShadow:  '0 0 6px rgba(51,255,0,0.6)',
+              }}
+            />
+          </div>
+
+          {/* Barra ASCII classica */}
+          <div style={{
+            color:         'var(--p-dim)',
+            fontSize:      '0.45rem',
+            fontFamily:    'monospace',
+            marginBottom:  '0.6rem',
+            letterSpacing: '0',
+          }}>
+            {'█'.repeat(barFilled)}{'░'.repeat(barEmpty)}
+          </div>
+
+          {/* Glifi decorativi — ruotano ogni render per dare senso di "elaborazione" */}
+          <div style={{
+            display:      'grid',
+            gridTemplateColumns: 'repeat(4, 1fr)',
+            gap:          '2px',
+            opacity:      0.45,
+            fontSize:     '0.7rem',
+          }}>
+            {ALIEN_GLYPHS.map((g, i) => (
+              <span
+                key={i}
+                className={i % 3 === 1 ? 'animate-blink' : ''}
+                style={{ textAlign: 'center', color: 'var(--p-dim)' }}
+              >
+                {g}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── WIDGET: INVENTARIO ── */}
+      {hasInventory && (
+        <div style={{ padding: '0.9rem 0.8rem', flex: 1 }}>
+          {/* Header widget */}
+          <div style={{
+            color:         'var(--primary-fixed-dim)',
+            marginBottom:  '0.8rem',
+            fontSize:      '0.55rem',
+            letterSpacing: '0.1em',
+            display:       'flex',
+            alignItems:    'center',
+            gap:           '0.4rem',
+            borderBottom:  '1px solid var(--outline-variant)',
+            paddingBottom: '0.4rem',
+          }}>
+            <span style={{ opacity: 0.7 }}>▣</span>
+            INVENTARIO
+            <span style={{ marginLeft: 'auto', color: 'var(--p-dim)', opacity: 0.6 }}>
+              {playerState.inventory.length}
+            </span>
+          </div>
+
+          {/* Lista oggetti */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.55rem' }}>
+            {playerState.inventory.map((item, i) => (
+              <div key={i}>
+                <div style={{
+                  color:         'var(--primary-container)',
+                  fontSize:      '0.5rem',
+                  letterSpacing: '0.06em',
+                  marginBottom:  '0.2rem',
+                  lineHeight:    '1.4',
+                }}>
+                  {item.toUpperCase()}
+                </div>
+                <div style={{
+                  height:     '1px',
+                  background: 'rgba(51, 255, 0, 0.15)',
+                }} />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Numero seriale in fondo — "stamped serial" style */}
+      <div style={{
+        marginTop:     'auto',
+        padding:       '0.4rem 0.8rem',
+        borderTop:     '1px solid var(--outline-variant)',
+        color:         'var(--p-dim)',
+        fontSize:      '0.4rem',
+        opacity:       0.3,
+        letterSpacing: '0.06em',
+      }}>
+        SYS-PANEL-v1.2
+      </div>
+    </aside>
+  );
+};
+
+/* ═══════════════════════════════════════════════
    MAPPA AMBIENCE PER STANZA
    Associa ogni location a un profilo sonoro.
    ═══════════════════════════════════════════════ */
@@ -698,15 +892,20 @@ const App: React.FC = () => {
         return <GameOverScreen onRestart={() => setGameState(GameState.StartMenu)} />;
       case GameState.Playing:
         return (
-          <div className="flex flex-col h-full" style={{ fontSize: '1.35rem' }}>
-            <TerminalOutput output={output} />
-            <CommandLine
-              onSubmit={submitCommand}
-              isLoading={isLoading || !!continuation}
-              history={history}
-              historyIndex={historyIndex}
-              setHistoryIndex={setHistoryIndex}
-            />
+          <div className="flex h-full" style={{ fontSize: '1.35rem' }}>
+            {/* Area terminale principale */}
+            <div className="flex flex-col flex-grow overflow-hidden">
+              <TerminalOutput output={output} />
+              <CommandLine
+                onSubmit={submitCommand}
+                isLoading={isLoading || !!continuation}
+                history={history}
+                historyIndex={historyIndex}
+                setHistoryIndex={setHistoryIndex}
+              />
+            </div>
+            {/* Sidebar destra — appare solo se almeno un widget è attivo */}
+            <GameSidebar playerState={playerState} />
           </div>
         );
     }
