@@ -40,29 +40,33 @@
       "dist/**/*",
       "dist-electron/**/*"
     ],
-    "extraFiles": [
-      { "from": "docs/giocatore/LEGGIMI.txt", "to": "LEGGIMI.txt" }
-    ],
     "directories": {
       "output": "release"
     },
     "win": {
       "target": "nsis",
-      "icon": "public/app-icon.png"
+      "icon": "public/app-icon.png",
+      "extraFiles": [
+        { "from": "docs/giocatore/LEGGIMI.txt", "to": "LEGGIMI.txt" }
+      ]
     },
     "mac": {
       "target": [
-        { "target": "dmg", "arch": ["x64", "arm64"] }
+        { "target": "dmg", "arch": ["x64"] }
       ],
       "icon": "public/app-icon.png",
       "category": "public.app-category.games",
-      "darkModeSupport": true
+      "darkModeSupport": true,
+      "hardenedRuntime": false
     },
     "linux": {
       "target": "AppImage",
       "icon": "public/app-icon.png",
       "category": "Game",
-      "maintainer": "Simone Pizzi"
+      "maintainer": "Simone Pizzi",
+      "extraFiles": [
+        { "from": "docs/giocatore/LEGGIMI.txt", "to": "LEGGIMI.txt" }
+      ]
     }
   }
 }
