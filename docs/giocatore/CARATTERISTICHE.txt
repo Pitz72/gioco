@@ -1,0 +1,62 @@
+IL RELITTO SILENTE — CARATTERISTICHE DEL GIOCO
+v1.2.5
+
+Un'avventura testuale fantascientifica in italiano.
+Un relitto. Un segreto millenario. Una scelta impossibile.
+
+---
+
+ESPLORAZIONE
+· 15 stanze scritte a mano, ognuna con descrizione, oggetti ed atmosfera propria
+· Mappa ASCII a rivelazione progressiva: le stanze compaiono man mano che le esplori,
+  con la tua posizione sempre evidenziata
+· Tre atti narrativi distinti: l'ingresso, il labirinto dei ricordi, la rivelazione
+
+NARRATIVA
+· Storia originale di fantascienza con due filoni paralleli: la civiltà aliena scomparsa
+  e la traccia di un essere umano passato di lì ottocento anni prima
+· Monologhi interiori del protagonista: il gioco si ferma nei momenti che lo meritano
+· 11 echi temporali captabili con il Sintonizzatore di Frequenza: le ultime voci
+  dell'equipaggio ricostruite stanza per stanza
+· Sistema di traduzione progressivo: ogni scoperta avanza la comprensione della lingua
+  aliena fino alla decodifica completa al 100%
+· Racconto prequel gratuito incluso: «Frequenza di Servizio»
+
+AUDIO
+· Atmosfera sonora generata in tempo reale — nessun file audio esterno
+· Cinque profili ambientali distinti: dalla nave umana all'interno alieno, dal gelo
+  dello spazio al santuario
+· Transizioni calcolate al millisecondo tra un'area e l'altra
+· Audio regolabile in qualsiasi momento: toggle on/off e controllo del volume
+
+SISTEMA DI GIOCO
+· Parser in italiano con riconoscimento flessibile dei comandi:
+  varianti, articoli, sinonimi e abbreviazioni vengono tutti accettati
+· Tre verbi di esplorazione con risposte diverse: ESAMINA (vista), ANALIZZA (scanner),
+  TOCCA (sensazione)
+· Sistema HINT contestuale: analizza posizione, inventario e avanzamento per suggerire
+  il passo successivo senza mai rovinare la sorpresa
+· Easter egg nascosto nella Stiva
+
+SALVATAGGIO E INTERFACCIA
+· Autosave automatico ad ogni cambio di stanza
+· 5 slot di salvataggio manuale
+· Schermata di pausa richiamabile in qualsiasi momento (F9 o ESC):
+  Continua · Salva · Carica · Ricomincia · Esci
+· Tasti funzione dedicati: F3 (carica), F4 (salva), F5 (esci), F6 (inventario),
+  F7 (mappa), F9 (pausa)
+
+FINE PARTITA
+· Schermata di statistiche al termine: stanze esplorate, echi captati,
+  percentuale di traduzione completata
+· Quattro livelli di valutazione: Esploratore Curioso · Recuperatore di Frammenti ·
+  Archivista Stellare · Custode della Memoria
+
+REQUISITI
+· Solo Windows — nessuna installazione, nessuna connessione internet richiesta
+· Avvia il file .exe e gioca
+· Zero dipendenze esterne
+
+---
+
+(c) 2026 — Il Relitto Silente Project · Simone Pizzi

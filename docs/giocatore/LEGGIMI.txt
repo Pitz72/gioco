@@ -1,0 +1,43 @@
+IL RELITTO SILENTE
+v1.2.5
+
+GRAZIE PER AVER SCARICATO IL GIOCO!
+Un'avventura testuale fantascientifica ispirata ai classici degli anni '80.
+
+ISTRUZIONI RAPIDE:
+1. Avvia il gioco eseguendo il file .exe (Windows).
+2. Usa la tastiera per digitare i comandi in italiano.
+   Es: "guarda", "vai nord", "prendi tuta", "usa taglierina su crepa"
+3. Se ti blocchi, scrivi AIUTO o SUGGERIMENTO nel gioco
+   oppure consulta il file SOLUZIONE.md incluso in questa cartella.
+
+COMANDI ESSENZIALI:
+- GUARDA (L)       : Ridescrive la stanza in cui ti trovi
+- VAI [DIREZIONE]  : N, S, E, O, VAI ALTO (U), VAI BASSO (D)
+- PRENDI [oggetto] : Raccoglie un oggetto
+- ESAMINA (X)      : Esamina visivamente un oggetto
+- ANALIZZA         : Scanner avanzato — usa su oggetti sospetti
+- USA [oggetto]    : Usa un oggetto o combinalo (USA X SU Y)
+- INVENTARIO (I)   : Lista oggetti in possesso
+- MAPPA            : Mappa delle stanze esplorate
+- AIUTO            : Suggerisce cosa fare in base alla situazione attuale
+- ASPETTA (Z)      : Lascia trascorrere il tempo
+
+COMANDI DI SISTEMA:
+- SALVA / CARICA   : Apre il pannello di salvataggio (5 slot + autosave)
+- IMPOSTAZIONI     : Regola volume e toggle audio ambientale/effetti
+- AUDIO / MUSICA   : Toggle rapido audio ambientale on/off
+- PULISCI / CLEAR  : Pulisce lo schermo
+
+TASTI FUNZIONE:
+- F3 : Carica partita
+- F4 : Salva partita
+- F5 : Esci dall'applicazione
+- F6 : Inventario
+- F7 : Mappa
+- F9 / ESC : Pausa (Continua / Salva / Carica / Ricomincia / Esci)
+
+BUONA FORTUNA, COMANDANTE.
+Il destino della Santa Maria è nelle tue mani.
+
+(c) 2026 — Il Relitto Silente Project · Simone Pizzi
