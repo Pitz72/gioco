@@ -1,0 +1,132 @@
+# BUILD CROSS-PLATFORM — Il Relitto Silente
+# Compila automaticamente .exe (Windows), .AppImage (Linux) e .dmg (macOS)
+# quando viene pubblicata una release con tag v*
+# oppure manualmente dal pannello "Actions" su GitHub.
+
+name: Build Cross-Platform Release
+
+on:
+  push:
+    tags:
+      - 'v*'           # es. git tag v1.2.6 && git push origin v1.2.6
+  workflow_dispatch:   # Pulsante manuale su GitHub → Actions
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false   # Se un platform fallisce, gli altri continuano
+      matrix:
+        include:
+          - os: windows-latest
+            platform_flag: --win
+            artifact_name: windows
+            artifact_glob: release/*.exe
+
+          - os: ubuntu-latest
+            platform_flag: --linux
+            artifact_name: linux
+            artifact_glob: release/*.AppImage
+
+          - os: macos-latest
+            platform_flag: --mac
+            artifact_name: macos
+            artifact_glob: release/*.dmg
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      # 1. Checkout del codice
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. Setup Node.js (stessa versione usata in sviluppo)
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      # 3. Dipendenze Linux per electron-builder AppImage
+      - name: Install Linux build dependencies
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libgtk-3-dev \
+            libnotify-dev \
+            libnss3 \
+            libxss1 \
+            libasound2-dev \
+            fakeroot \
+            rpm
+
+      # 4. Installa le dipendenze npm
+      - name: Install npm dependencies
+        run: npm ci
+
+      # 5. Build Vite (frontend)
+      - name: Build frontend (Vite)
+        run: npm run build
+
+      # 6. Compila il main process Electron (TypeScript → JS)
+      - name: Compile Electron main process
+        run: npx tsc -p electron/tsconfig.json
+
+      # 7. Genera dist-electron/package.json (serve a electron-builder)
+      - name: Run build helper
+        run: node electron/build-helper.js
+
+      # 8. Pacchettizza con electron-builder per la piattaforma target
+      #    --publish never = non tenta di pushare su GitHub/S3 da sé
+      - name: Package with electron-builder
+        run: npx electron-builder ${{ matrix.platform_flag }} --publish never
+        env:
+          # macOS: senza certificato → build non firmata (funziona ma mostra warning)
+          CSC_IDENTITY_AUTO_DISCOVERY: false
+          # GitHub token (automatico in CI, serve a electron-builder internamente)
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # 9. Upload artefatti
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: IlRelittoSilente-${{ matrix.artifact_name }}
+          path: ${{ matrix.artifact_glob }}
+          if-no-files-found: error
+          retention-days: 30
+
+  # Job opzionale: crea una GitHub Release e allega tutti i file
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    # Si esegue solo quando il trigger è un tag v*
+    if: startsWith(github.ref, 'refs/tags/')
+    permissions:
+      contents: write    # Necessario per creare release
+
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts/
+          merge-multiple: true
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "Il Relitto Silente ${{ github.ref_name }}"
+          body: |
+            ## Il Relitto Silente ${{ github.ref_name }}
+
+            ### Download
+            | Piattaforma | File |
+            |---|---|
+            | 🪟 Windows | `.exe` (installer NSIS) |
+            | 🐧 Linux   | `.AppImage` (portabile, nessuna installazione) |
+            | 🍎 macOS   | `.dmg` (non firmato — tasto destro → Apri) |
+
+            > ⚠️ **macOS**: la build non è firmata con Apple Developer ID.
+            > Clicca con il tasto destro sul .dmg e scegli "Apri" per bypassare Gatekeeper.
+          files: artifacts/**
+          draft: false
+          prerelease: false
