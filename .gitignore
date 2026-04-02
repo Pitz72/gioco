@@ -35,6 +35,7 @@ MANUALE-ESTESO/
 *.tar.gz
 *.7z
 *.pdf
+!docs/giocatore/*.pdf
 *.blockmap
 
 # =============================================

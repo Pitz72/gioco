@@ -1,5 +1,6 @@
 # BUILD CROSS-PLATFORM — Il Relitto Silente
 # Compila automaticamente .exe (Windows), .AppImage (Linux) e .dmg (macOS)
+# e produce ZIP di distribuzione completi (eseguibile + documentazione)
 # quando viene pubblicata una release con tag v*
 # oppure manualmente dal pannello "Actions" su GitHub.
 
@@ -20,17 +21,20 @@ jobs:
           - os: windows-latest
             platform_flag: --win
             artifact_name: windows
-            artifact_path: release/*.exe
+            artifact_glob: release/*.exe
+            zip_suffix: win
 
           - os: ubuntu-latest
             platform_flag: --linux
             artifact_name: linux
-            artifact_path: release/*.AppImage
+            artifact_glob: release/*.AppImage
+            zip_suffix: linux
 
           - os: macos-latest
             platform_flag: --mac
             artifact_name: macos
-            artifact_path: release/*.dmg
+            artifact_glob: release/*.dmg
+            zip_suffix: mac
 
     runs-on: ${{ matrix.os }}
 
@@ -39,14 +43,20 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. Setup Node.js (LTS 22 — stessa versione usata in sviluppo)
+      # 2. Legge la versione da package.json
+      - name: Read version from package.json
+        id: version
+        run: echo "VERSION=$(node -p \"require('./package.json').version\")" >> $GITHUB_OUTPUT
+        shell: bash
+
+      # 3. Setup Node.js (LTS 22)
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '22'
           cache: 'npm'
 
-      # 3. Dipendenze di sistema per Linux (AppImage builder)
+      # 4. Dipendenze di sistema per Linux (AppImage builder)
       - name: Install Linux build dependencies
         if: matrix.os == 'ubuntu-latest'
         run: |
@@ -60,36 +70,66 @@ jobs:
             fakeroot \
             rpm
 
-      # 4. Installa le dipendenze npm
+      # 5. Installa le dipendenze npm
       - name: Install npm dependencies
         run: npm ci
 
-      # 5. Build Vite (frontend React)
+      # 6. Build Vite (frontend React)
       - name: Build frontend (Vite)
         run: npm run build
 
-      # 6. Compila il main process Electron (TypeScript → CommonJS)
+      # 7. Compila il main process Electron (TypeScript → CommonJS)
       - name: Compile Electron main process
         run: npx tsc -p electron/tsconfig.json
 
-      # 7. Genera dist-electron/package.json (richiesto da electron-builder)
+      # 8. Genera dist-electron/package.json (richiesto da electron-builder)
       - name: Run build helper
         run: node electron/build-helper.js
 
-      # 8. Pacchettizza con electron-builder per la piattaforma target
+      # 9. Pacchettizza con electron-builder per la piattaforma target
       - name: Package with electron-builder
         run: npx electron-builder ${{ matrix.platform_flag }} --publish never
         env:
-          # macOS: disabilita ricerca automatica certificati (build non firmata)
           CSC_IDENTITY_AUTO_DISCOVERY: false
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # 9. Carica i file prodotti come artifact del workflow
-      - name: Upload build artifact
+      # 10. Assembla ZIP di distribuzione (eseguibile + documentazione)
+      - name: Assemble distribution ZIP
+        shell: bash
+        run: |
+          VERSION="${{ steps.version.outputs.VERSION }}"
+          ZIP_NAME="IlRelittoSilente-${VERSION}-${{ matrix.zip_suffix }}.zip"
+          STAGING="staging-${{ matrix.zip_suffix }}"
+
+          mkdir -p "$STAGING"
+
+          # Copia l'eseguibile compilato
+          cp ${{ matrix.artifact_glob }} "$STAGING/"
+
+          # Copia la documentazione
+          cp docs/giocatore/LEGGIMI.txt         "$STAGING/"
+          cp docs/giocatore/MANUALE.md           "$STAGING/"
+          cp docs/giocatore/SOLUZIONE.md         "$STAGING/"
+          cp docs/giocatore/CARATTERISTICHE.txt  "$STAGING/"
+          cp docs/giocatore/il_relitto_silente_manuale.pdf "$STAGING/"
+
+          # Crea lo ZIP
+          cd "$STAGING"
+          if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
+            7z a "../${ZIP_NAME}" *
+          else
+            zip -r "../${ZIP_NAME}" *
+          fi
+          cd ..
+
+          echo "ZIP_NAME=${ZIP_NAME}" >> $GITHUB_ENV
+
+      # 11. Carica lo ZIP come artifact del workflow
+      - name: Upload distribution ZIP
         uses: actions/upload-artifact@v4
         with:
           name: IlRelittoSilente-${{ matrix.artifact_name }}
-          path: ${{ matrix.artifact_path }}
+          path: IlRelittoSilente-${{ steps.version.outputs.VERSION }}-${{ matrix.zip_suffix }}.zip
           if-no-files-found: error
           retention-days: 30
 
@@ -114,7 +154,12 @@ jobs:
       - name: List artifacts
         run: find artifacts/ -type f | sort
 
-      # Crea la GitHub Release e allega i file
+      # Legge la versione dal tag
+      - name: Get version from tag
+        id: tag_version
+        run: echo "VERSION=${GITHUB_REF_NAME#v}" >> $GITHUB_OUTPUT
+
+      # Crea la GitHub Release e allega gli ZIP
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
@@ -126,21 +171,27 @@ jobs:
 
             ---
 
-            ### 📥 Download
+            ### Download
 
-            | Piattaforma | Formato | Note |
-            |---|---|---|
-            | 🪟 **Windows** | Installer `.exe` | Installazione guidata |
-            | 🐧 **Linux** | `.AppImage` | Eseguibile portabile, nessuna installazione |
-            | 🍎 **macOS** | `.dmg` | Drag & Drop in Applicazioni |
+            Ogni archivio contiene l'eseguibile e la documentazione completa (manuale PDF, istruzioni, soluzione).
 
-            > **Nota macOS:** la build non è firmata con Apple Developer ID certificato.
+            | Piattaforma | File |
+            |---|---|
+            | Windows | `IlRelittoSilente-${{ steps.tag_version.outputs.VERSION }}-win.zip` |
+            | Linux | `IlRelittoSilente-${{ steps.tag_version.outputs.VERSION }}-linux.zip` |
+            | macOS | `IlRelittoSilente-${{ steps.tag_version.outputs.VERSION }}-mac.zip` |
+
+            > **Nota macOS:** la build non è firmata con Apple Developer ID.
             > Se macOS blocca l'apertura: **tasto destro → Apri** e conferma.
 
             ---
 
-            ### 📖 Documentazione
-            Il file `LEGGIMI.txt` è incluso nella cartella di installazione.
+            ### Documentazione inclusa negli archivi
+            - `LEGGIMI.txt` — istruzioni rapide
+            - `MANUALE.md` — guida completa ai comandi
+            - `SOLUZIONE.md` — soluzione completa (spoiler)
+            - `CARATTERISTICHE.txt` — caratteristiche tecniche
+            - `il_relitto_silente_manuale.pdf` — manuale in formato PDF
           files: artifacts/**
           draft: false
           prerelease: false
