@@ -99,31 +99,43 @@ jobs:
       - name: Assemble distribution ZIP
         shell: bash
         run: |
+          set -e
           VERSION="${{ steps.version.outputs.VERSION }}"
-          ZIP_NAME="IlRelittoSilente-${VERSION}-${{ matrix.zip_suffix }}.zip"
-          STAGING="staging-${{ matrix.zip_suffix }}"
+          ZIP_SUFFIX="${{ matrix.zip_suffix }}"
+          ZIP_NAME="IlRelittoSilente-${VERSION}-${ZIP_SUFFIX}.zip"
+          STAGING="staging-${ZIP_SUFFIX}"
 
-          mkdir -p "$STAGING"
+          echo "=== Contenuto di release/ ==="
+          find release/ -maxdepth 2 -type f | sort
 
-          # Copia l'eseguibile compilato
-          cp ${{ matrix.artifact_glob }} "$STAGING/"
+          mkdir -p "${STAGING}"
+
+          # Trova e copia l'eseguibile prodotto da electron-builder
+          EXE_PATH=$(find release/ -maxdepth 1 -type f -name "IlRelittoSilente-*" | head -1)
+          echo "=== Eseguibile trovato: ${EXE_PATH} ==="
+          cp "${EXE_PATH}" "${STAGING}/"
 
           # Copia la documentazione
-          cp docs/giocatore/LEGGIMI.txt         "$STAGING/"
-          cp docs/giocatore/MANUALE.md           "$STAGING/"
-          cp docs/giocatore/SOLUZIONE.md         "$STAGING/"
-          cp docs/giocatore/CARATTERISTICHE.txt  "$STAGING/"
-          cp docs/giocatore/il_relitto_silente_manuale.pdf "$STAGING/"
+          cp docs/giocatore/LEGGIMI.txt                     "${STAGING}/"
+          cp docs/giocatore/MANUALE.md                      "${STAGING}/"
+          cp docs/giocatore/SOLUZIONE.md                    "${STAGING}/"
+          cp docs/giocatore/CARATTERISTICHE.txt             "${STAGING}/"
+          cp docs/giocatore/il_relitto_silente_manuale.pdf  "${STAGING}/"
+
+          echo "=== Contenuto staging ==="
+          ls -lh "${STAGING}/"
 
           # Crea lo ZIP
-          cd "$STAGING"
-          if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
-            7z a "../${ZIP_NAME}" *
+          cd "${STAGING}"
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
+            7z a "../${ZIP_NAME}" .
           else
-            zip -r "../${ZIP_NAME}" *
+            zip -r "../${ZIP_NAME}" .
           fi
           cd ..
 
+          echo "=== ZIP prodotto ==="
+          ls -lh "${ZIP_NAME}"
           echo "ZIP_NAME=${ZIP_NAME}" >> $GITHUB_ENV
 
       # 11. Carica lo ZIP come artifact del workflow
@@ -131,7 +143,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: IlRelittoSilente-${{ matrix.artifact_name }}
-          path: IlRelittoSilente-${{ steps.version.outputs.VERSION }}-${{ matrix.zip_suffix }}.zip
+          path: ${{ env.ZIP_NAME }}
           if-no-files-found: error
           retention-days: 30
 
