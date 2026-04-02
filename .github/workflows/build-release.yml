@@ -23,18 +23,21 @@ jobs:
             artifact_name: windows
             artifact_glob: release/*.exe
             zip_suffix: win
+            exe_ext: exe
 
           - os: ubuntu-latest
             platform_flag: --linux
             artifact_name: linux
             artifact_glob: release/*.AppImage
             zip_suffix: linux
+            exe_ext: AppImage
 
           - os: macos-latest
             platform_flag: --mac
             artifact_name: macos
             artifact_glob: release/*.dmg
             zip_suffix: mac
+            exe_ext: dmg
 
     runs-on: ${{ matrix.os }}
 
@@ -111,8 +114,12 @@ jobs:
           mkdir -p "${STAGING}"
 
           # Trova e copia l'eseguibile prodotto da electron-builder
-          EXE_PATH=$(find release/ -maxdepth 1 -type f -name "IlRelittoSilente-*" | head -1)
+          EXE_PATH=$(find release/ -maxdepth 1 -type f -name "*.${{ matrix.exe_ext }}" | head -1)
           echo "=== Eseguibile trovato: ${EXE_PATH} ==="
+          if [[ -z "${EXE_PATH}" ]]; then
+            echo "ERRORE: nessun file .${{ matrix.exe_ext }} trovato in release/"
+            exit 1
+          fi
           cp "${EXE_PATH}" "${STAGING}/"
 
           # Copia la documentazione
