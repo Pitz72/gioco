@@ -399,6 +399,8 @@ const App: React.FC = () => {
   const [showAudioSettings, setShowAudioSettings] = useState(false);
   // overlay pausa
   const [showPause, setShowPause] = useState(false);
+  // Ref per posticipare la transizione a GameOver dopo le continuations del finale
+  const pendingGameOver = useRef(false);
 
   // ── Inizializza storage (filesystem IPC) al boot ──────────────────
   useEffect(() => {
@@ -448,7 +450,13 @@ const App: React.FC = () => {
       const { visible: gv, remaining: gr } = paginateText(res.gameOver);
       setOutput(prev => [...prev, { kind: 'text', content: gv }]);
       setContinuation(gr);
-      setGameState(GameState.GameOver);
+      if (gr) {
+        // Ci sono ancora pagine da leggere: la transizione avviene dopo l'ultima continuation
+        pendingGameOver.current = true;
+      } else {
+        // Tutto in una pagina sola: aspetta 3s per permettere la lettura
+        setTimeout(() => setGameState(GameState.GameOver), 3000);
+      }
     }
   }, []);
 
@@ -468,6 +476,10 @@ const App: React.FC = () => {
       const { visible, remaining } = paginateText(textToPaginate);
       setOutput(prev => [...prev, { kind: 'text', content: visible }]);
       setContinuation(remaining);
+      if (!remaining && pendingGameOver.current) {
+        pendingGameOver.current = false;
+        setGameState(GameState.GameOver);
+      }
     };
     window.addEventListener('keydown', handleContinue, { once: true });
     return () => { window.removeEventListener('keydown', handleContinue); };

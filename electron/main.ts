@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain } from 'electron';
+import { app, BrowserWindow, ipcMain, screen } from 'electron';
 import fs from 'fs';
 import path from 'path';
 
@@ -42,9 +42,17 @@ ipcMain.handle('storage:readSettings', (): string | null => {
 function createWindow() {
     const isDev = !app.isPackaged;
 
+    // Su Linux, senza specificare il display, Electron apre in fullscreen
+    // sul monitor con il focus attivo (spesso il secondario in setup multi-monitor).
+    // getPrimaryDisplay() garantisce l'apertura sempre sul monitor principale.
+    const primaryDisplay = screen.getPrimaryDisplay();
+    const { x, y } = primaryDisplay.bounds;
+
     const win = new BrowserWindow({
         width: 1920,
         height: 1080,
+        x,
+        y,
         fullscreen: !isDev,
         autoHideMenuBar: true,
         icon: path.join(__dirname, '../public/app-icon.png'),

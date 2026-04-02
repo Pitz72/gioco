@@ -10,6 +10,7 @@ export const scafoEsternoRoom: Room = {
          desc += "\nL'unica via di ritorno visibile è il boccaporto della tua nave a NORD.";
          return desc;
     },
+    items: [],
     commands: [
         // MOVIMENTO
         { regex: "^((vai|va) )?(nord|n|indietro|santa maria)$", handler: (state) => {

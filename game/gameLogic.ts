@@ -631,7 +631,7 @@ export const processCommand = (command: string, currentState: PlayerState): { re
         }
 
         /* — Percorso 2: VERBO semplice su X ———————————————————————————— */
-        const simpleMatch = normalizedCommand.match(/^(esamina|guarda|analizza|prendi|raccogli|usa|attiva) (.+)$/);
+        const simpleMatch = normalizedCommand.match(/^(esamina|guarda|analizza|prendi|raccogli|usa|attiva|apri) (.+)$/);
         if (simpleMatch) {
             const verb       = simpleMatch[1];
             const targetName = simpleMatch[2].trim();
@@ -685,7 +685,7 @@ export const processCommand = (command: string, currentState: PlayerState): { re
                         return { response, newState };
                     }
 
-                    if (verb === 'usa' || verb === 'attiva') {
+                    if (verb === 'usa' || verb === 'attiva' || verb === 'apri') {
                         if (item.onUse) {
                             const result = item.onUse(newState);
                             response = { description: withProgressBar(result.description), eventType: result.eventType || 'item_use', gameOver: result.gameOver, typewriter: result.typewriter };
