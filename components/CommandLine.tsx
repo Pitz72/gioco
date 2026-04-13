@@ -46,7 +46,12 @@ const CommandLine: React.FC<CommandLineProps> = ({ onSubmit, isLoading, history,
 
   return (
     <div
-      style={{ flexShrink: 0, paddingTop: '0.5rem', borderTop: '1px solid var(--border-crt)' }}
+      style={{
+        flexShrink: 0,
+        paddingTop: '0.6rem',
+        marginTop: '0.4rem',
+        borderTop: '1px solid var(--outline-variant)',
+      }}
       onClick={focusInput}
     >
       <form onSubmit={handleSubmit} style={{ position: 'relative' }}>
@@ -68,11 +73,11 @@ const CommandLine: React.FC<CommandLineProps> = ({ onSubmit, isLoading, history,
           }}
         />
 
-        {/* Layer visivo */}
+        {/* Layer visivo — stile "no-box" dal design system */}
         <div style={{ display: 'flex', alignItems: 'center', whiteSpace: 'nowrap', overflow: 'hidden', lineHeight: 1 }}>
 
-          {/* Prompt > */}
-          <span style={{ color: 'var(--p-bright)', marginRight: '0.5em', flexShrink: 0 }}>{'>'}</span>
+          {/* Prompt _> stile terminale di bordo */}
+          <span className="animate-pulse" style={{ color: 'var(--primary-container)', marginRight: '0.5em', flexShrink: 0, opacity: 0.8 }}>{'_>'}</span>
 
           {isLoading ? (
             <span style={{ color: 'var(--p-dim)' }}>Elaborazione in corso...</span>

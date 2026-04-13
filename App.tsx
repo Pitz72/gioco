@@ -107,57 +107,102 @@ const FunctionKeyBar: React.FC<FKeyBarProps> = ({ gameState, onF1, onF2, onF3, o
   const isPlaying = gameState === GameState.Playing;
 
   const keys: Array<{ id: string; label: string; active: boolean; fn: () => void }> = [
-    { id: 'F1', label: 'ISTRUZIONI', active: isMenu,                    fn: onF1 },
-    { id: 'F2', label: 'GIOCA',      active: isMenu || isInstr,         fn: onF2 },
-    { id: 'F3', label: 'CARICA',     active: isMenu || isPlaying,       fn: onF3 },
-    { id: 'F4', label: 'SALVA',      active: isPlaying,                  fn: onF4 },
-    { id: 'F5', label: 'ESCI',       active: true,                       fn: onF5 },
-    { id: 'F6', label: 'INVENTARIO', active: isPlaying,                  fn: onF6 },
-    { id: 'F7', label: 'MAPPA',      active: isPlaying,                  fn: onF7 },
-    { id: 'F8', label: 'CREDITI',    active: isMenu || isInstr,          fn: onF8 },
-    { id: 'F9', label: 'PAUSA',      active: isPlaying,                  fn: onF9 },
+    { id: 'F1', label: 'ISTRUZIONI', active: isMenu,               fn: onF1 },
+    { id: 'F2', label: 'GIOCA',      active: isMenu || isInstr,    fn: onF2 },
+    { id: 'F3', label: 'CARICA',     active: isMenu || isPlaying,  fn: onF3 },
+    { id: 'F4', label: 'SALVA',      active: isPlaying,            fn: onF4 },
+    { id: 'F5', label: 'ESCI',       active: true,                 fn: onF5 },
+    { id: 'F6', label: 'INVENTARIO', active: isPlaying,            fn: onF6 },
+    { id: 'F7', label: 'MAPPA',      active: isPlaying,            fn: onF7 },
+    { id: 'F8', label: 'CREDITI',    active: isMenu || isInstr,    fn: onF8 },
+    { id: 'F9', label: 'PAUSA',      active: isPlaying,            fn: onF9 },
   ];
 
   return (
-    <div style={{
-      display: 'flex',
-      height: '44px',
-      borderTop: '1px solid var(--border-crt)',
-      flexShrink: 0,
-    }}>
-      {keys.map(({ id, label, active, fn }, i) => (
+    <div className="fkey-bar" style={{ display: 'flex', height: '52px', flexShrink: 0 }}>
+      {keys.map(({ id, label, active, fn }) => (
         <div
           key={id}
+          className={`fkey-item ${active ? 'active' : ''}`}
           onClick={active ? fn : undefined}
-          style={{
-            flex: 1,
-            display: 'flex',
-            alignItems: 'center',
-            paddingLeft: i === 0 ? '6px' : '10px',
-            cursor: active ? 'pointer' : 'default',
-            borderRight: i < 7 ? '1px solid var(--border-crt)' : 'none',
-          }}
+          style={{ cursor: active ? 'pointer' : 'default', flex: 1 }}
         >
-          <span style={{
-            display: 'inline-block',
-            background: active ? 'var(--p-main)' : 'var(--p-dim)',
-            color: active ? 'var(--bg-screen)' : '#040804',
-            fontSize: '0.68rem',
-            padding: '2px 5px',
-            marginRight: '8px',
-            flexShrink: 0,
-            letterSpacing: '0.04em',
-          }}>{id}</span>
-          <span style={{
-            fontSize: '0.68rem',
-            color: active ? 'var(--p-main)' : 'var(--p-dim)',
-            letterSpacing: '0.06em',
-            overflow: 'hidden',
-            whiteSpace: 'nowrap',
-          }}>{label}</span>
+          <span className={`fkey-badge ${active ? '' : 'inactive'}`}>{id}</span>
+          <span className="fkey-label" style={{ color: active ? 'var(--p-main)' : 'var(--p-dim)' }}>
+            {label}
+          </span>
         </div>
       ))}
     </div>
+  );
+};
+
+/* ═══════════════════════════════════════════════
+   HEADER CRT — barra di stato superiore
+   Mostra titolo + stanza corrente + décor status
+   ═══════════════════════════════════════════════ */
+interface CrtHeaderProps {
+  gameState: GameState;
+  location: string;
+}
+
+const CrtHeader: React.FC<CrtHeaderProps> = ({ gameState, location }) => {
+  const isPlaying = gameState === GameState.Playing;
+  return (
+    <header className="crt-header" style={{
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      padding: '10px 24px',
+      flexShrink: 0,
+    }}>
+      {/* Sinistra: titolo sistema */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0' }}>
+        <span className="glow-text" style={{
+          color: 'var(--p-main)',
+          fontSize: '0.65rem',
+          letterSpacing: '0.12em',
+        }}>
+          IL RELITTO SILENTE
+        </span>
+        <span className="header-divider" />
+        <span style={{
+          color: 'var(--p-bright)',
+          fontSize: '0.55rem',
+          letterSpacing: '0.08em',
+          opacity: 0.8,
+        }}>
+          SISTEMA DI BORDO
+        </span>
+      </div>
+      {/* Centro: stanza corrente (solo durante il gioco) */}
+      {isPlaying && (
+        <div style={{
+          color: 'var(--p-dim)',
+          fontSize: '0.5rem',
+          letterSpacing: '0.1em',
+          textAlign: 'center',
+          opacity: 0.7,
+        }}>
+          POSIZIONE: <span style={{ color: 'var(--p-main)', opacity: 1 }}>{location.toUpperCase()}</span>
+        </div>
+      )}
+      {/* Destra: stato sessione */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '16px',
+        color: 'var(--p-dim)',
+        fontSize: '0.5rem',
+        letterSpacing: '0.08em',
+      }}>
+        <span style={{ color: isPlaying ? 'var(--p-main)' : 'var(--p-dim)', opacity: isPlaying ? 0.9 : 0.4 }}>
+          SESSIONE: {isPlaying ? 'ATTIVA' : 'INATTIVA'}
+        </span>
+        <span style={{ opacity: 0.3 }}>◈</span>
+        <span style={{ opacity: 0.4 }}>SIG-ERR</span>
+      </div>
+    </header>
   );
 };
 
@@ -358,6 +403,200 @@ const PaginatedScreen: React.FC<{
   );
 };
 
+
+/* ═══════════════════════════════════════════════
+   GAME SIDEBAR — pannello destro persistente
+   Contiene widget condizionali che appaiono solo
+   quando la meccanica relativa è stata attivata.
+   ═══════════════════════════════════════════════ */
+
+// Glifi alieni fissi per décor ALGO_TRADUTTORE
+const ALIEN_GLYPHS = ['Җ', 'Ѧ', 'Ѭ', 'Ӂ', 'Ԑ', 'Ԗ', 'Ԧ', 'Ԭ'];
+
+interface GameSidebarProps {
+  playerState: PlayerState;
+}
+
+const GameSidebar: React.FC<GameSidebarProps> = ({ playerState }) => {
+  const translationPct = (playerState.flags.translationProgress as number | undefined) ?? 0;
+  const hasTranslation = translationPct > 0;
+  const hasInventory   = playerState.inventory.length > 0;
+
+  // Se nulla da mostrare, la sidebar non occupa spazio
+  if (!hasTranslation && !hasInventory) return null;
+
+  const barFilled  = Math.round((translationPct / 100) * 10);
+  const barEmpty   = 10 - barFilled;
+
+  return (
+    <aside style={{
+      width:          '260px',
+      flexShrink:     0,
+      borderLeft:     '1px solid var(--outline-variant)',
+      background:     'var(--surface-container-low)',
+      display:        'flex',
+      flexDirection:  'column',
+      fontSize:       '0.6rem',
+      letterSpacing:  '0.06em',
+      overflowY:      'auto',
+      gap:            '0',
+    }}>
+
+      {/* ── WIDGET: ALGO_TRADUTTORE ── */}
+      {hasTranslation && (
+        <div style={{
+          borderBottom:  '1px solid var(--outline-variant)',
+          borderLeft:    '3px solid var(--primary-container)',
+          background:    'var(--surface-container-high)',
+          padding:       '0.9rem 0.8rem',
+        }}>
+          {/* Header widget */}
+          <div style={{
+            color:         'var(--primary-fixed)',
+            marginBottom:  '0.7rem',
+            fontSize:      '0.55rem',
+            letterSpacing: '0.1em',
+            display:       'flex',
+            alignItems:    'center',
+            gap:           '0.4rem',
+          }}>
+            <span style={{ opacity: 0.7 }}>⟁</span>
+            ALGO_TRADUTTORE
+          </div>
+
+          {/* Percentuale */}
+          <div style={{
+            display:        'flex',
+            justifyContent: 'space-between',
+            marginBottom:   '0.4rem',
+            fontSize:       '0.5rem',
+          }}>
+            <span style={{ color: 'var(--p-dim)' }}>MATRICE:</span>
+            <span style={{
+              color: translationPct === 100 ? 'var(--p-bright)' : 'var(--primary-container)',
+            }}>
+              {translationPct === 100 ? '██ COMPLETA ██' : `${translationPct}%`}
+            </span>
+          </div>
+
+          {/* Barra progresso */}
+          <div style={{
+            width:      '100%',
+            height:     '6px',
+            background: 'var(--surface-variant)',
+            marginBottom: '0.6rem',
+            position:   'relative',
+            overflow:   'hidden',
+          }}>
+            <div
+              className={translationPct < 100 ? 'flicker-active' : ''}
+              style={{
+                position:   'absolute',
+                top:        0,
+                left:       0,
+                height:     '100%',
+                width:      `${translationPct}%`,
+                background: translationPct === 100
+                  ? 'var(--p-bright)'
+                  : 'var(--primary-container)',
+                transition: 'none',
+                boxShadow:  '0 0 6px rgba(51,255,0,0.6)',
+              }}
+            />
+          </div>
+
+          {/* Barra ASCII classica */}
+          <div style={{
+            color:         'var(--p-dim)',
+            fontSize:      '0.45rem',
+            fontFamily:    'monospace',
+            marginBottom:  '0.6rem',
+            letterSpacing: '0',
+          }}>
+            {'█'.repeat(barFilled)}{'░'.repeat(barEmpty)}
+          </div>
+
+          {/* Glifi decorativi — ruotano ogni render per dare senso di "elaborazione" */}
+          <div style={{
+            display:      'grid',
+            gridTemplateColumns: 'repeat(4, 1fr)',
+            gap:          '2px',
+            opacity:      0.45,
+            fontSize:     '0.7rem',
+          }}>
+            {ALIEN_GLYPHS.map((g, i) => (
+              <span
+                key={i}
+                className={i % 3 === 1 ? 'animate-blink' : ''}
+                style={{ textAlign: 'center', color: 'var(--p-dim)' }}
+              >
+                {g}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── WIDGET: INVENTARIO ── */}
+      {hasInventory && (
+        <div style={{ padding: '0.9rem 0.8rem', flex: 1 }}>
+          {/* Header widget */}
+          <div style={{
+            color:         'var(--primary-fixed-dim)',
+            marginBottom:  '0.8rem',
+            fontSize:      '0.55rem',
+            letterSpacing: '0.1em',
+            display:       'flex',
+            alignItems:    'center',
+            gap:           '0.4rem',
+            borderBottom:  '1px solid var(--outline-variant)',
+            paddingBottom: '0.4rem',
+          }}>
+            <span style={{ opacity: 0.7 }}>▣</span>
+            INVENTARIO
+            <span style={{ marginLeft: 'auto', color: 'var(--p-dim)', opacity: 0.6 }}>
+              {playerState.inventory.length}
+            </span>
+          </div>
+
+          {/* Lista oggetti */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.55rem' }}>
+            {playerState.inventory.map((item, i) => (
+              <div key={i}>
+                <div style={{
+                  color:         'var(--primary-container)',
+                  fontSize:      '0.5rem',
+                  letterSpacing: '0.06em',
+                  marginBottom:  '0.2rem',
+                  lineHeight:    '1.4',
+                }}>
+                  {item.toUpperCase()}
+                </div>
+                <div style={{
+                  height:     '1px',
+                  background: 'rgba(51, 255, 0, 0.15)',
+                }} />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Numero seriale in fondo — "stamped serial" style */}
+      <div style={{
+        marginTop:     'auto',
+        padding:       '0.4rem 0.8rem',
+        borderTop:     '1px solid var(--outline-variant)',
+        color:         'var(--p-dim)',
+        fontSize:      '0.4rem',
+        opacity:       0.3,
+        letterSpacing: '0.06em',
+      }}>
+        SYS-PANEL-v1.2
+      </div>
+    </aside>
+  );
+};
 
 /* ═══════════════════════════════════════════════
    MAPPA AMBIENCE PER STANZA
@@ -665,15 +904,29 @@ const App: React.FC = () => {
         return <GameOverScreen onRestart={() => setGameState(GameState.StartMenu)} />;
       case GameState.Playing:
         return (
-          <div className="flex flex-col h-full" style={{ fontSize: '1.35rem' }}>
-            <TerminalOutput output={output} />
-            <CommandLine
-              onSubmit={submitCommand}
-              isLoading={isLoading || !!continuation}
-              history={history}
-              historyIndex={historyIndex}
-              setHistoryIndex={setHistoryIndex}
-            />
+          <div style={{ display: 'flex', flex: 1, minHeight: 0, fontSize: '1.35rem' }}>
+            {/* Area terminale principale — con padding proprio */}
+            <div style={{
+              display:       'flex',
+              flexDirection: 'column',
+              flexGrow:      1,
+              overflow:      'hidden',
+              minWidth:      0,
+              paddingLeft:   '2.2rem',
+              paddingRight:  '2.2rem',
+              paddingBottom: '1.2rem',
+            }}>
+              <TerminalOutput output={output} />
+              <CommandLine
+                onSubmit={submitCommand}
+                isLoading={isLoading || !!continuation}
+                history={history}
+                historyIndex={historyIndex}
+                setHistoryIndex={setHistoryIndex}
+              />
+            </div>
+            {/* Sidebar destra — tocca il bordo, altezza piena */}
+            <GameSidebar playerState={playerState} />
           </div>
         );
     }
@@ -689,36 +942,41 @@ const App: React.FC = () => {
      ─────────────────────────────────────────────────────────────────── */
   return (
     <div className="bg-black w-screen h-screen overflow-hidden">
-      {/* Bezel — cornice fisica del monitor */}
+      {/* Bezel — cornice fisica del monitor (industrial heavy) */}
       <div
         id="game-container"
         className="crt-flicker"
         style={{
-          width:   '1920px',
-          height:  '1080px',
-          background:   '#080d08',
-          border:       '3px solid #1a2e1a',
-          borderRadius: '8px',
-          boxShadow:    '0 0 80px rgba(51,255,0,0.06), 0 0 200px rgba(0,0,0,0.8)',
+          width:        '1920px',
+          height:       '1080px',
+          background:   'var(--bezel-bg)',
+          border:       '20px solid var(--bezel-border)',
+          borderBottom: '36px solid var(--bezel-border)',
+          borderRadius: '4px',
+          boxShadow:    '0 0 60px rgba(51,255,0,0.04), 0 0 200px rgba(0,0,0,0.9), inset 0 0 40px rgba(0,0,0,0.6)',
           display:      'flex',
           flexDirection:'column',
-          padding:      '20px 20px 0 20px',
           overflow:     'hidden',
           ...scaleStyle,
         }}
       >
-        {/* Area schermo — phosphor display inset nella cornice */}
+        {/* Header CRT — sempre visibile dopo il boot */}
+        {gameState !== GameState.Boot && (
+          <CrtHeader gameState={gameState} location={playerState.location} />
+        )}
+
+        {/* Area schermo — phosphor display */}
         <div
           style={{
             flex:          1,
             background:    'var(--bg-screen)',
-            borderRadius:  '3px',
             position:      'relative',
             overflow:      'hidden',
             display:       'flex',
             flexDirection: 'column',
-            padding:       '1.6rem 2.2rem',
-            boxShadow:     'inset 0 0 60px rgba(0,0,0,0.7), inset 0 0 10px rgba(0,0,0,0.5)',
+            /* Nessun padding orizzontale qui: la sidebar deve toccare il bordo */
+            paddingTop:    '1.6rem',
+            boxShadow:     'inset 0 0 80px rgba(0,0,0,0.8), inset 0 0 20px rgba(51,255,0,0.03)',
           }}
         >
           {/* Strati CRT — dal più profondo */}
@@ -726,7 +984,7 @@ const App: React.FC = () => {
           <div className="crt-vignette" />
           <div className="scanline"     />
 
-          <div style={{ color: 'var(--p-main)', flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          <div style={{ color: 'var(--p-main)', flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minHeight: 0 }}>
             {renderGameContent()}
           </div>
 
@@ -764,15 +1022,15 @@ const App: React.FC = () => {
           {/* Overlay informativo — inventario (F6) e mappa (F7) */}
           {infoOverlay !== null && (
             <div
+              className="overlay-crt"
               style={{
-                position:  'absolute',
-                inset:     0,
-                background:'rgba(3, 11, 2, 0.97)',
-                zIndex:    100,
-                display:   'flex',
+                position:      'absolute',
+                inset:         0,
+                zIndex:        100,
+                display:       'flex',
                 flexDirection: 'column',
-                padding:   '1.8rem 2.2rem 1rem',
-                overflow:  'hidden',
+                padding:       '1.8rem 2.2rem 1rem',
+                overflow:      'hidden',
               }}
             >
               <div
@@ -789,13 +1047,14 @@ const App: React.FC = () => {
               </div>
               <div
                 style={{
-                  borderTop:     '1px solid var(--border-crt)',
+                  borderTop:     '1px solid var(--outline-variant)',
                   paddingTop:    '0.5rem',
                   marginTop:     '0.8rem',
-                  fontSize:      '0.68rem',
+                  fontSize:      '0.6rem',
                   color:         'var(--p-dim)',
                   display:       'flex',
                   justifyContent:'flex-end',
+                  letterSpacing: '0.06em',
                 }}
               >
                 <span style={{ color: 'var(--p-main)' }}>[ESC]</span>
@@ -807,7 +1066,7 @@ const App: React.FC = () => {
           )}
         </div>
 
-        {/* Footer F-key — sempre visibile dopo il boot, in area bezel */}
+        {/* Footer F-key — sempre visibile dopo il boot */}
         {gameState !== GameState.Boot && (
           <FunctionKeyBar
             gameState={gameState}
@@ -822,9 +1081,6 @@ const App: React.FC = () => {
             onF9={() => { playKeystrokeSound(); setShowPause(prev => !prev); }}
           />
         )}
-
-        {/* Padding inferiore del bezel */}
-        <div style={{ height: '16px', flexShrink: 0 }} />
       </div>
     </div>
   );
