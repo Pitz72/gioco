@@ -18,24 +18,58 @@ function getSettingsPath(): string {
 /* ─── IPC handlers — storage ───────────────────────────────────────────────
    Il renderer non tocca mai il filesystem direttamente.
    slot id: 0-4 = salvataggi manuali, -1 = autosave.                     */
+
+/* Valida l'id slot e ricava un nome file sicuro. Senza questo controllo un id
+   non intero o fuori range permetterebbe path traversal (es. "../config")
+   sul filesystem dell'utente (BUG B5). */
+function slotFilename(id: unknown): string | null {
+    if (typeof id !== 'number' || !Number.isInteger(id) || id < -1 || id > 4) return null;
+    return id === -1 ? 'autosave.json' : `slot-${id}.json`;
+}
+
 ipcMain.handle('storage:writeSlot', (_event, id: number, data: string) => {
-    const filename = id === -1 ? 'autosave.json' : `slot-${id}.json`;
-    fs.writeFileSync(path.join(getSavesDir(), filename), data, 'utf-8');
+    const filename = slotFilename(id);
+    if (!filename || typeof data !== 'string') throw new Error('Parametri di salvataggio non validi.');
+    try {
+        fs.writeFileSync(path.join(getSavesDir(), filename), data, 'utf-8');
+    } catch (err) {
+        // Propaga al renderer (la Promise IPC verrà rigettata e gestita lì) ma logga
+        // nel main così un errore di scrittura non resta silenzioso (BUG B4).
+        console.error('[storage] writeSlot fallito:', err);
+        throw err;
+    }
 });
 
 ipcMain.handle('storage:readSlot', (_event, id: number): string | null => {
-    const filename = id === -1 ? 'autosave.json' : `slot-${id}.json`;
-    const filepath = path.join(getSavesDir(), filename);
-    return fs.existsSync(filepath) ? fs.readFileSync(filepath, 'utf-8') : null;
+    const filename = slotFilename(id);
+    if (!filename) return null;
+    try {
+        const filepath = path.join(getSavesDir(), filename);
+        return fs.existsSync(filepath) ? fs.readFileSync(filepath, 'utf-8') : null;
+    } catch (err) {
+        console.error('[storage] readSlot fallito:', err);
+        return null;
+    }
 });
 
 ipcMain.handle('storage:writeSettings', (_event, data: string) => {
-    fs.writeFileSync(getSettingsPath(), data, 'utf-8');
+    if (typeof data !== 'string') throw new Error('Impostazioni non valide.');
+    try {
+        fs.writeFileSync(getSettingsPath(), data, 'utf-8');
+    } catch (err) {
+        console.error('[storage] writeSettings fallito:', err);
+        throw err;
+    }
 });
 
 ipcMain.handle('storage:readSettings', (): string | null => {
-    const filepath = getSettingsPath();
-    return fs.existsSync(filepath) ? fs.readFileSync(filepath, 'utf-8') : null;
+    try {
+        const filepath = getSettingsPath();
+        return fs.existsSync(filepath) ? fs.readFileSync(filepath, 'utf-8') : null;
+    } catch (err) {
+        console.error('[storage] readSettings fallito:', err);
+        return null;
+    }
 });
 
 /* ─── Finestra principale ──────────────────────────────────────────────── */

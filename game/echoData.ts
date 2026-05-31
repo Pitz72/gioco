@@ -34,3 +34,14 @@ export const LOCATION_TO_ECHO: Record<string, string> = {
     'Stiva':                        'echo_stiva',
     'Santuario del Silenzio':       'echo_santuario_sil',
 };
+
+/** Stanze con eco le cui uscite si sigillano a senso unico durante la discesa
+    verso i Laboratori di Risonanza: dopo aver preso il Sintonizzatore non sono
+    più raggiungibili. I loro echi vengono catturati retroattivamente alla prima
+    attivazione del dispositivo (per le stanze già attraversate), così che il
+    100% degli echi resti ottenibile senza alterare la mappa (BUG B2). */
+export const SEALED_ECHO_ROOMS: string[] = [
+    'Plancia della Santa Maria',
+    'Stiva',
+    'Camera di Compensazione',
+];

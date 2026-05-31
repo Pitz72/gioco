@@ -5,13 +5,29 @@ import { getSettingSync, setSetting } from './storageService';
    In Electron (Chromium moderno) AudioContext è sempre disponibile:
    il fallback webkitAudioContext non è necessario.                       */
 let audioCtx: AudioContext | null = null;
+/** True se l'inizializzazione audio è già fallita: evita di ritentare a ogni
+    keystroke (e di rilanciare la stessa eccezione) quando Web Audio non è
+    disponibile o è stato bloncato dalla piattaforma (BUG B3). */
+let audioUnavailable = false;
 
 const initializeAudio = () => {
-    if (!audioCtx) {
-        audioCtx = new AudioContext();
-    }
-    if (audioCtx.state === 'suspended') {
-        audioCtx.resume();
+    if (audioUnavailable) return;
+    try {
+        if (!audioCtx) {
+            const Ctx: typeof AudioContext | undefined =
+                (typeof AudioContext !== 'undefined' ? AudioContext : undefined) ??
+                (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+            if (!Ctx) { audioUnavailable = true; return; }
+            audioCtx = new Ctx();
+        }
+        if (audioCtx.state === 'suspended') {
+            void audioCtx.resume().catch(() => { /* ripreso al prossimo input */ });
+        }
+    } catch (err) {
+        // Web Audio non disponibile: degrada silenziosamente, gioco muto ma funzionante.
+        audioUnavailable = true;
+        audioCtx = null;
+        console.warn('[audio] AudioContext non disponibile, audio disabilitato:', err);
     }
 };
 

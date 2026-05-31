@@ -1,6 +1,6 @@
 import { Room } from '../../types';
 import { gameData } from '../gameData';
-import { ECHO_TEXTS, LOCATION_TO_ECHO } from '../echoData';
+import { ECHO_TEXTS, LOCATION_TO_ECHO, SEALED_ECHO_ROOMS } from '../echoData';
 
 export const laboratoriRisonanzaRoom: Room = {
     description: (state) => {
@@ -38,16 +38,45 @@ export const laboratoriRisonanzaRoom: Room = {
             details: "È un rilevatore di anomalie quantistiche. Può 'ascoltare' gli echi residui di eventi passati impressi nella materia.",
             isPickable: true,
             onUse: (state) => {
-                const echoId = LOCATION_TO_ECHO[state.location] ?? '';
-                if (!echoId) {
-                    return { description: "Il sintonizzatore emette solo statico. Nessuna traccia mnemonica rilevabile in questa zona.", eventType: 'tech' };
+                const visited = state.visitedRooms ?? [];
+                const currentId = LOCATION_TO_ECHO[state.location];
+
+                /* Echi da registrare in questa attivazione:
+                   1) l'eco della stanza corrente (meccanica originale);
+                   2) gli echi delle stanze sigillate già attraversate, che
+                      altrimenti resterebbero irraggiungibili (BUG B2). */
+                const toCapture: string[] = [];
+                if (currentId && !state.echoes.includes(currentId)) toCapture.push(currentId);
+                for (const room of SEALED_ECHO_ROOMS) {
+                    const id = LOCATION_TO_ECHO[room];
+                    if (id && visited.includes(room) && !state.echoes.includes(id) && !toCapture.includes(id)) {
+                        toCapture.push(id);
+                    }
                 }
-                if (state.echoes.includes(echoId)) {
-                    return { description: "Rilevi solo un residuo statico. Hai già decifrato questo eco.", eventType: 'tech' };
+
+                if (toCapture.length === 0) {
+                    return {
+                        description: currentId
+                            ? "Rilevi solo un residuo statico. Hai già decifrato questo eco."
+                            : "Il sintonizzatore emette solo statico. Nessuna traccia mnemonica rilevabile in questa zona.",
+                        eventType: 'tech'
+                    };
                 }
-                state.echoes.push(echoId);
+
+                toCapture.forEach(id => state.echoes.push(id));
+
+                if (toCapture.length === 1) {
+                    return {
+                        description: `Il sintonizzatore fischia acutamente, agganciando una frequenza fantasma. Una voce attraversa i secoli:\n\n${ECHO_TEXTS[toCapture[0]]}`,
+                        eventType: 'echo'
+                    };
+                }
+
+                // Prima attivazione dopo la discesa: il dispositivo riaggancia in
+                // un colpo solo gli echi delle zone ormai sigillate alle spalle.
+                const voices = toCapture.map(id => ECHO_TEXTS[id]).join('\n\n');
                 return {
-                    description: `Il sintonizzatore fischia acutamente, agganciando una frequenza fantasma. Una voce attraversa i secoli:\n\n${ECHO_TEXTS[echoId]}`,
+                    description: `Il sintonizzatore impazzisce, agganciando in rapida successione le frequenze fantasma rimaste impresse nella materia lungo la tua discesa. Voci sovrapposte riemergono dal silenzio dei secoli:\n\n${voices}`,
                     eventType: 'echo'
                 };
             }

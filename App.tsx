@@ -411,7 +411,11 @@ const App: React.FC = () => {
   useEffect(() => {
     if (gameState === GameState.Playing) {
       if (isAmbienceEnabled()) startAmbience(ROOM_AMBIENCE[playerState.location] ?? null);
-      writeAutosave(playerState);
+      // Autosave non bloccante: un errore di scrittura non deve generare
+      // unhandled rejection né interrompere il gioco (BUG B4).
+      void writeAutosave(playerState).catch(err => {
+        console.error('[autosave] scrittura fallita:', err);
+      });
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [playerState.location, gameState]);
@@ -438,7 +442,18 @@ const App: React.FC = () => {
       case 'movement':                     playMoveSound();  break;
       case 'error':                        playErrorSound(); break;
     }
-    const { visible, remaining } = paginateText(res.description);
+    /* Componi l'INTERO flusso di testo in un'unica catena paginabile:
+       descrizione + eventuale continuazione (res.continueText, con i suoi
+       [PAUSE] interni preservati) + eventuale epilogo di game-over.
+       paginateText scompone la catena un [PAUSE] alla volta e la useEffect di
+       continuation la mostra pagina dopo pagina. In passato res.continueText
+       veniva ignorato e setContinuation(remaining) era sovrascritto dal ramo
+       gameOver, troncando monologhi finali e testi a [PAUSE] (BUG B1). */
+    let fullText = res.description;
+    if (res.continueText) fullText += PAUSE_MARKER + res.continueText;
+    if (res.gameOver)     fullText += PAUSE_MARKER + res.gameOver;
+
+    const { visible, remaining } = paginateText(fullText);
     const outputKind: OutputLine['kind'] = res.html ? 'html' : (res.typewriter ? 'typewriter' : 'text');
     if (res.clearScreen) {
       setOutput([{ kind: outputKind, content: visible } as OutputLine]);
@@ -447,10 +462,7 @@ const App: React.FC = () => {
     }
     setContinuation(remaining);
     if (res.gameOver) {
-      const { visible: gv, remaining: gr } = paginateText(res.gameOver);
-      setOutput(prev => [...prev, { kind: 'text', content: gv }]);
-      setContinuation(gr);
-      if (gr) {
+      if (remaining) {
         // Ci sono ancora pagine da leggere: la transizione avviene dopo l'ultima continuation
         pendingGameOver.current = true;
       } else {

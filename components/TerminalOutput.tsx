@@ -49,26 +49,34 @@ const TypewriterLine: React.FC<{ content: string }> = ({ content }) => {
         setDisplayed('');
         setDone(false);
 
+        /* Listener "salta animazione". Viene rimosso non appena la riga è
+           completa (naturalmente o per pressione di un tasto): senza questo,
+           ogni TypewriterLine montata teneva un listener globale per tutta la
+           sua vita, accumulandone uno per riga di output (BUG B7). */
+        const removeKeyListener = () => window.removeEventListener('keydown', handleKey);
+        const finish = () => {
+            if (intervalRef.current) { clearInterval(intervalRef.current); intervalRef.current = null; }
+            removeKeyListener();
+            setDone(true);
+        };
+        const handleKey = (e: KeyboardEvent) => {
+            if (/^F\d+$/.test(e.key) || ['Shift', 'Control', 'Alt', 'Meta', 'Tab', 'CapsLock'].includes(e.key)) return;
+            setDisplayed(content);
+            finish();
+        };
+
         intervalRef.current = setInterval(() => {
             charRef.current++;
             setDisplayed(content.slice(0, charRef.current));
             if (charRef.current >= content.length) {
-                clearInterval(intervalRef.current!);
-                setDone(true);
+                finish();
             }
         }, 10);
-
-        const handleKey = (e: KeyboardEvent) => {
-            if (/^F\d+$/.test(e.key) || ['Shift', 'Control', 'Alt', 'Meta', 'Tab', 'CapsLock'].includes(e.key)) return;
-            if (intervalRef.current) clearInterval(intervalRef.current);
-            setDisplayed(content);
-            setDone(true);
-        };
         window.addEventListener('keydown', handleKey);
 
         return () => {
             if (intervalRef.current) clearInterval(intervalRef.current);
-            window.removeEventListener('keydown', handleKey);
+            removeKeyListener();
         };
     }, [content]);
 

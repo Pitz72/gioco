@@ -263,6 +263,18 @@ function getDiario(state: PlayerState): string {
 /* ─── Inventario formattato HTML ──────────────────────────────────────────
    Genera markup HTML sicuro (contenuto interamente da dati interni) con
    colori CRT per header e bullet ►. Nessun input utente incluso.         */
+/** Neutralizza i metacaratteri HTML. I nomi oggetto sono dati interni, ma il
+    risultato finisce in dangerouslySetInnerHTML: l'escape impedisce che un
+    valore di stato inatteso venga interpretato come markup/script (BUG B6). */
+function escapeHtml(s: string): string {
+    return s
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
 export function getInventarioHtml(state: PlayerState): string {
     const inv = state.inventory;
     const header = `<span style="color:var(--p-bright);letter-spacing:0.08em;">INVENTARIO [${inv.length}/\u221e]</span>`;
@@ -270,7 +282,7 @@ export function getInventarioHtml(state: PlayerState): string {
         return header + `<br/><span style="color:var(--p-main);">Nessun oggetto.</span>`;
     }
     const items = inv.map(item =>
-        `<br/><span style="color:var(--p-bright);">\u25ba</span> <span style="color:var(--p-main);">${item}</span>`
+        `<br/><span style="color:var(--p-bright);">\u25ba</span> <span style="color:var(--p-main);">${escapeHtml(item)}</span>`
     ).join('');
     return header + items;
 }
@@ -356,7 +368,7 @@ export function getStats(state: PlayerState): string {
     const visitedCount  = (state.visitedRooms ?? []).length;
     const totalRooms    = 15;
     const echoCount     = state.echoes.length;
-    const totalEchoes   = 11; // 11 stanze con eco su 15 totali (Plancia, Scafo, Arca Memoria, Santuario Centrale: nessun eco per giustificazione narrativa)
+    const totalEchoes   = 11; // 11 stanze con eco su 15 totali (le 4 senza eco: Scafo Esterno, Arca della Memoria, Santuario Centrale, Anticamera del Santuario). Tutti gli 11 echi sono ottenibili: quelli delle stanze sigillate vengono catturati retroattivamente dal Sintonizzatore — vedi SEALED_ECHO_ROOMS in echoData.ts (BUG B2).
     const pct           = (state.flags.translationProgress as number) ?? 0;
 
     const analysisFlagsList = [
