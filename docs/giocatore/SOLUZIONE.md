@@ -167,7 +167,7 @@ Dal Corridoio Principale: `D` *(o `VAI BASSO`)*
 
 **Per avanzare:**
 - `PRENDI SINTONIZZATORE` → **Sintonizzatore di Frequenza** *(necessario per tutti gli echi)*
-- `USA CRISTALLO ATTIVATO SU MACCHINARI` → energia ripristinata *(sblocca il terminale nell'Arca della Memoria)*
+- `USA CRISTALLO ATTIVATO SU MACCHINARI` → **energia ripristinata** *(indispensabile: senza, la console del Ponte di Comando resta inerte e non puoi attivare la mappa stellare)*
 - `U` *(o `VAI ALTO`)* → **Corridoio Principale**
 
 **Per l'esperienza completa:**
@@ -264,7 +264,12 @@ Con le tre chiavi in inventario *(Seme Vivente, Stele del Ricordo, Nucleo di Mem
 
 ### PONTE DI COMANDO
 
+> **Prerequisito:** i sistemi del Ponte sono alimentati solo se hai già ripristinato
+> l'energia nei Laboratori di Risonanza (`USA CRISTALLO ATTIVATO SU MACCHINARI`).
+> Senza energia, `USA POSTAZIONE` non ha effetto.
+
 **Per avanzare:**
+- *(se non l'hai già fatto)* ripristina l'energia dai Laboratori di Risonanza
 - `USA POSTAZIONE` → si attiva la mappa stellare olografica
 - `ESAMINA MAPPA` → scopri l'indizio sul "sistema trino"
 - `TOCCA TRE PUNTE` → *(la risposta è nella mappa: tre soli → tre punte)*

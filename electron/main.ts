@@ -76,9 +76,11 @@ ipcMain.handle('storage:readSettings', (): string | null => {
 function createWindow() {
     const isDev = !app.isPackaged;
 
-    // Su Linux, senza specificare il display, Electron apre in fullscreen
-    // sul monitor con il focus attivo (spesso il secondario in setup multi-monitor).
-    // getPrimaryDisplay() garantisce l'apertura sempre sul monitor principale.
+    // Su Linux/multi-monitor, passare fullscreen:true al costruttore fa sì che
+    // Electron ignori le coordinate x/y e apra sul monitor con il focus attivo
+    // (spesso il secondario) — BUG B16. Soluzione: creare la finestra NON in
+    // fullscreen, posizionata sul monitor primario, e attivare il fullscreen
+    // DOPO la creazione, quando la finestra è già sul monitor giusto.
     const primaryDisplay = screen.getPrimaryDisplay();
     const { x, y } = primaryDisplay.bounds;
 
@@ -87,7 +89,7 @@ function createWindow() {
         height: 1080,
         x,
         y,
-        fullscreen: !isDev,
+        fullscreen: false,
         autoHideMenuBar: true,
         icon: path.join(__dirname, '../public/app-icon.png'),
         webPreferences: {
@@ -101,6 +103,10 @@ function createWindow() {
         win.maximize();
         win.loadURL('http://localhost:3000');
     } else {
+        // Ancora la finestra al monitor primario, poi entra in fullscreen su QUEL
+        // monitor (a finestra già creata x/y non vengono più ignorati).
+        win.setBounds(primaryDisplay.bounds);
+        win.setFullScreen(true);
         win.loadFile(path.join(__dirname, '../dist/index.html'));
     }
 }

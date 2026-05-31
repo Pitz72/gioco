@@ -81,6 +81,12 @@ const playTone = (frequency: number, duration: number, type: OscillatorType = 's
 
     oscillator.start(audioCtx.currentTime);
     oscillator.stop(audioCtx.currentTime + duration);
+    // Libera i nodi a fine suono: senza disconnect i GainNode/Oscillator si
+    // accumulavano nel grafo ad ogni keystroke (BUG B13).
+    oscillator.onended = () => {
+        try { oscillator.disconnect(); } catch { /* già disconnesso */ }
+        try { gainNode.disconnect(); } catch { /* già disconnesso */ }
+    };
 };
 
 // Helper: rumore filtrato per suoni di movimento
@@ -112,6 +118,12 @@ const playNoise = (duration: number) => {
 
     noise.start();
     noise.stop(audioCtx.currentTime + duration);
+    // Libera l'intera catena a fine suono (BUG B13).
+    noise.onended = () => {
+        try { noise.disconnect(); } catch { /* già disconnesso */ }
+        try { bandpass.disconnect(); } catch { /* già disconnesso */ }
+        try { gainNode.disconnect(); } catch { /* già disconnesso */ }
+    };
 };
 
 export const playKeystrokeSound = () => { ensureAudioInitialized(); playTone(220, 0.05, 'square'); };

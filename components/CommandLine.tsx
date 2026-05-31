@@ -8,15 +8,24 @@ interface CommandLineProps {
   history: string[];
   historyIndex: number;
   setHistoryIndex: React.Dispatch<React.SetStateAction<number>>;
+  /** True quando un overlay (pausa, save/load, impostazioni, info) copre il gioco. */
+  overlayOpen?: boolean;
 }
 
-const CommandLine: React.FC<CommandLineProps> = ({ onSubmit, isLoading, history, historyIndex, setHistoryIndex }) => {
+const CommandLine: React.FC<CommandLineProps> = ({ onSubmit, isLoading, history, historyIndex, setHistoryIndex, overlayOpen = false }) => {
   const [command, setCommand] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!isLoading) inputRef.current?.focus();
   }, [isLoading]);
+
+  // Ripristina il focus quando un overlay si chiude: senza questo, dopo aver
+  // chiuso pausa/salvataggi/impostazioni la riga di comando restava senza focus
+  // e l'utente doveva cliccare per poter digitare (BUG B12).
+  useEffect(() => {
+    if (!overlayOpen && !isLoading) inputRef.current?.focus();
+  }, [overlayOpen, isLoading]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

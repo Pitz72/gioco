@@ -39,6 +39,11 @@ export async function initStorageSettings(): Promise<void> {
         } catch {
             settingsCache = {};
         }
+        // Garantisce che eventuali preferenze in attesa di debounce vengano
+        // scritte prima della chiusura della finestra (vedi BUG B15).
+        if (typeof window !== 'undefined') {
+            window.addEventListener('beforeunload', flushSettings);
+        }
     } else {
         // Dev mode: specchia le chiavi rilevanti da localStorage nella cache
         const keys = [
@@ -57,12 +62,33 @@ export function getSettingSync(key: string): string | null {
     return settingsCache[key] ?? null;
 }
 
-/** Scrittura sincrona nella cache + write-through asincrono su disco. */
+/* Scrittura su disco con debounce: lo spostamento di uno slider audio genera
+   decine di setSetting al secondo. Riscrivere l'intero settings.json ad ogni
+   tick (fire-and-forget) causava scritture concorrenti e potenziale corruzione
+   del file (BUG B15). Coalizziamo le scritture in una sola ogni 300 ms. */
+let settingsFlushTimer: ReturnType<typeof setTimeout> | null = null;
+
+function scheduleSettingsFlush(): void {
+    if (settingsFlushTimer) clearTimeout(settingsFlushTimer);
+    settingsFlushTimer = setTimeout(() => {
+        settingsFlushTimer = null;
+        window.electronAPI!.writeSettings(JSON.stringify(settingsCache)).catch(() => {});
+    }, 300);
+}
+
+/** Forza subito su disco le preferenze in sospeso (es. prima di chiudere). */
+export function flushSettings(): void {
+    if (settingsFlushTimer) { clearTimeout(settingsFlushTimer); settingsFlushTimer = null; }
+    if (isElectron()) {
+        window.electronAPI!.writeSettings(JSON.stringify(settingsCache)).catch(() => {});
+    }
+}
+
+/** Scrittura sincrona nella cache + write-through (debounced) su disco. */
 export function setSetting(key: string, value: string): void {
     settingsCache[key] = value;
     if (isElectron()) {
-        // fire-and-forget: le preferenze audio non richiedono conferma
-        window.electronAPI!.writeSettings(JSON.stringify(settingsCache)).catch(() => {});
+        scheduleSettingsFlush();
     } else {
         try { localStorage.setItem(key, value); } catch { /* quota exceeded, ignorabile */ }
     }

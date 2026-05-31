@@ -66,13 +66,15 @@ const SaveLoadOverlay: React.FC<SaveLoadOverlayProps> = ({
   /* Carica lo stato degli slot all'apertura */
   useEffect(() => {
     const loadAll = async () => {
+      // Ogni lettura è isolata: un errore IPC o un file corrotto su un singolo
+      // slot non deve far fallire l'intera schermata di caricamento (BUG B14).
+      const safeRead = (id: number) =>
+        readSlotData(id).then(parseSlotData).catch(() => null);
       const results = await Promise.all(
-        Array.from({ length: SLOT_COUNT }, (_, i) =>
-          readSlotData(i).then(raw => parseSlotData(raw))
-        )
+        Array.from({ length: SLOT_COUNT }, (_, i) => safeRead(i))
       );
       setSlots(results);
-      setAutosave(parseSlotData(await readSlotData(-1)));
+      setAutosave(await safeRead(-1));
     };
     void loadAll();
   }, []);

@@ -226,6 +226,20 @@ function getContextualHint(state: PlayerState): string {
         return "Sei nei Laboratori. Hai già preso il Sintonizzatore. Risali al Corridoio Principale: VAI ALTO.";
     }
 
+    // Ponte di Comando: richiede energia ripristinata prima di attivare la console
+    if (loc === 'Ponte di Comando') {
+        if (!flags['isPowerRestored']) {
+            return "Il Ponte è inerte: manca l'energia. Ripristina i sistemi della nave dai Laboratori di Risonanza (USA CRISTALLO SU MACCHINARI), poi torna qui e USA CONSOLE.";
+        }
+        if (!flags['isHologramActive']) {
+            return "I sistemi sono alimentati. USA CONSOLE (la postazione del comandante) per risvegliare il Ponte e proiettare la mappa stellare.";
+        }
+        if (!flags['isFinalDoorOpen']) {
+            return "La mappa stellare è attiva. ESAMINA MAPPA per capire la rotta, poi apri la porta finale: la chiave è il numero dei soli del loro sistema. TOCCA TRE PUNTE.";
+        }
+        return "La porta finale è aperta. ENTRA per raggiungere il Santuario.";
+    }
+
     // Alloggi dell'Equipaggio: recupero cilindro mnemonico
     if (loc === "Alloggi dell'Equipaggio") {
         if (!flags['cilindroPreso']) {
@@ -281,9 +295,14 @@ export function getInventarioHtml(state: PlayerState): string {
     if (inv.length === 0) {
         return header + `<br/><span style="color:var(--p-main);">Nessun oggetto.</span>`;
     }
-    const items = inv.map(item =>
-        `<br/><span style="color:var(--p-bright);">\u25ba</span> <span style="color:var(--p-main);">${escapeHtml(item)}</span>`
-    ).join('');
+    const items = inv.map(item => {
+        // Etichetta "(indossata)" derivata dal flag, senza alterare la stringa in
+        // inventario (vedi BUG B9 in stiva.ts).
+        const label = (item === 'Tuta Spaziale' && state.flags.isWearingSuit)
+            ? 'Tuta Spaziale (indossata)'
+            : item;
+        return `<br/><span style="color:var(--p-bright);">\u25ba</span> <span style="color:var(--p-main);">${escapeHtml(label)}</span>`;
+    }).join('');
     return header + items;
 }
 

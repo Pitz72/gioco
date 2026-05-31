@@ -31,6 +31,13 @@ export const ponteDiComandoRoom: Room = {
                 if (state.flags.isHologramActive) {
                     return { description: "Hai già attivato la console. La mappa stellare brilla sopra di te.", eventType: 'error' };
                 }
+                // La console del Ponte richiede l'energia ripristinata dai Laboratori di
+                // Risonanza (USA CRISTALLO SU MACCHINARI): è là che il flusso viene
+                // reindirizzato verso il Ponte. Senza, la sotto-quest del Cristallo non
+                // sbloccherebbe nulla (BUG B10).
+                if (!state.flags.isPowerRestored) {
+                    return { description: "Appoggi la mano sulla depressione bio-metrica, ma la console resta morta e gelida. Nessun bagliore, nessuna vibrazione. Manca l'energia: questa postazione — e l'intero Ponte — sono inerti finché i sistemi della nave non vengono ripristinati.", eventType: 'error' };
+                }
                 state.flags.isHologramActive = true;
                 const intro = state.flags.isWestDoorUnlocked
                     ? "Appoggi la tua mano guantata sulla depressione. La console reagisce al tuo tocco, riconoscendoti non per la tua identità, ma per il tuo intento. Riconosce che hai riunito l'eredità della nave."

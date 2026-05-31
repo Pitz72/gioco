@@ -40,7 +40,11 @@ export const stivaRoom: Room = {
                     // Manteniamo logica semplice: devi averla.
                     return { description: "Devi prima prenderla.", eventType: 'error' };
                 }
-                state.inventory[index] = "Tuta Spaziale (indossata)";
+                // NON rinominare la stringa in inventario: "Tuta Spaziale (indossata)"
+                // romperebbe il match esatto (normalizeCommand) usato da ESAMINA/ANALIZZA
+                // TUTA dall'inventario, rendendole irraggiungibili (BUG B9). Lo stato
+                // "indossata" è tracciato dal flag isWearingSuit; l'etichetta visiva
+                // viene aggiunta in getInventarioHtml.
                 state.flags.isWearingSuit = true;
                 return { description: "Ora indossi la tuta spaziale. I sistemi di supporto vitale si attivano con un leggero ronzio e il display interno si accende nel tuo casco.", eventType: 'item_use' };
             }
@@ -59,6 +63,9 @@ export const stivaRoom: Room = {
                 state.inventory.splice(index, 1);
                 state.inventory.push("Taglierina al Plasma", "Batteria di Emergenza");
                 state.flags.kitAperto = true;
+                // Marca anche il flag di raccolta del parser: garantisce che il Kit non
+                // possa essere ri-raccolto e ri-aperto generando oggetti all'infinito (BUG B8).
+                state.flags['picked_Stiva_kit_manutenzione'] = true;
                 return { description: "Apri la valigetta. Dentro trovi una Taglierina al Plasma e una Batteria di Emergenza.", eventType: 'item_use' };
             }
         },

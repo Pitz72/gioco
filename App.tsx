@@ -685,6 +685,7 @@ const App: React.FC = () => {
               history={history}
               historyIndex={historyIndex}
               setHistoryIndex={setHistoryIndex}
+              overlayOpen={slotMenu !== null || infoOverlay !== null || showAudioSettings || showPause}
             />
           </div>
         );
