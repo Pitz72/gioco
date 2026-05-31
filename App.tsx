@@ -10,6 +10,7 @@ import BootScreen from './components/BootScreen';
 import SaveLoadOverlay, { loadSlotState, writeAutosave } from './components/SaveLoadOverlay';
 import IntroScreen from './components/IntroScreen';
 import { initStorageSettings } from './services/storageService';
+import { getAppVersion } from './version';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import {
   playSubmitSound,
@@ -168,7 +169,7 @@ const instructionsText = `<div style="color:var(--p-main);height:100%;display:fl
 
 <div style="text-align:center;border-bottom:2px solid var(--p-dim);padding-bottom:1rem;">
   <div style="font-size:1.2rem;letter-spacing:0.15em;color:var(--p-bright);text-shadow:0 0 8px var(--p-glow-a);">╔══════════════════════════════════════════╗</div>
-  <div style="font-size:1.3rem;letter-spacing:0.2em;color:var(--p-bright);text-shadow:0 0 10px var(--p-glow-a);padding:0.4rem 0;">MANUALE OPERATIVO  v1.1.38</div>
+  <div style="font-size:1.3rem;letter-spacing:0.2em;color:var(--p-bright);text-shadow:0 0 10px var(--p-glow-a);padding:0.4rem 0;">MANUALE OPERATIVO  v${getAppVersion()}</div>
   <div style="font-size:1.2rem;letter-spacing:0.15em;color:var(--p-bright);text-shadow:0 0 8px var(--p-glow-a);">╚══════════════════════════════════════════╝</div>
   <div style="font-size:0.75rem;color:var(--p-dim);margin-top:0.5rem;">INTERFACCIA TERMINALE  ·  PROTOCOLLO DI INTERAZIONE  ·  PAGINA 1 / 2</div>
 </div>
@@ -213,7 +214,7 @@ const instructionsText = `<div style="color:var(--p-main);height:100%;display:fl
 
 <div style="text-align:center;border-bottom:2px solid var(--p-dim);padding-bottom:1rem;">
   <div style="font-size:1.2rem;letter-spacing:0.15em;color:var(--p-bright);text-shadow:0 0 8px var(--p-glow-a);">╔══════════════════════════════════════════╗</div>
-  <div style="font-size:1.3rem;letter-spacing:0.2em;color:var(--p-bright);text-shadow:0 0 10px var(--p-glow-a);padding:0.4rem 0;">MANUALE OPERATIVO  v1.1.38</div>
+  <div style="font-size:1.3rem;letter-spacing:0.2em;color:var(--p-bright);text-shadow:0 0 10px var(--p-glow-a);padding:0.4rem 0;">MANUALE OPERATIVO  v${getAppVersion()}</div>
   <div style="font-size:1.2rem;letter-spacing:0.15em;color:var(--p-bright);text-shadow:0 0 8px var(--p-glow-a);">╚══════════════════════════════════════════╝</div>
   <div style="font-size:0.75rem;color:var(--p-dim);margin-top:0.5rem;">STRUMENTAZIONE AVANZATA  ·  MECCANICHE DI GIOCO  ·  PAGINA 2 / 2</div>
 </div>
@@ -255,7 +256,7 @@ const creditsText = `<div style="color:var(--p-main);height:100%;display:flex;fl
 
 <div>
   <div style="font-size:1.2rem;letter-spacing:0.12em;color:var(--p-bright);text-shadow:0 0 8px var(--p-glow-a);">╔══════════════════════════════════════════╗</div>
-  <div style="font-size:1.1rem;letter-spacing:0.18em;color:var(--p-bright);text-shadow:0 0 10px var(--p-glow-a);padding:0.5rem 0;">IL RELITTO SILENTE  v1.1.6</div>
+  <div style="font-size:1.1rem;letter-spacing:0.18em;color:var(--p-bright);text-shadow:0 0 10px var(--p-glow-a);padding:0.5rem 0;">IL RELITTO SILENTE  v${getAppVersion()}</div>
   <div style="font-size:1.2rem;letter-spacing:0.12em;color:var(--p-bright);text-shadow:0 0 8px var(--p-glow-a);">╚══════════════════════════════════════════╝</div>
   <div style="font-size:0.7rem;color:var(--p-dim);margin-top:0.5rem;letter-spacing:0.1em;">UN'AVVENTURA TESTUALE ITALIANA</div>
 </div>
