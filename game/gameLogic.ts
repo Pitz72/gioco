@@ -861,6 +861,20 @@ export const processCommand = (command: string, currentState: PlayerState): { re
         }
     }
 
+    // ESAMINA/GUARDA <nome stanza> o <parola generica> → descrizione stanza.
+    // Fallback (dopo room command e item system): cattura solo i casi non gestiti
+    // altrove, così "esamina scafo"/"esamina altare" ecc. restano ai loro handler.
+    const lookRoom = normalizedCommand.match(/^(esamina|guarda) (.+)$/);
+    if (lookRoom) {
+        const arg = lookRoom[2].trim();
+        const generic = ['stanza', 'ambiente', 'sala', 'posto', 'luogo', 'area', 'zona', 'intorno', 'giro', 'tutto'];
+        const locWords = normalizeCommand(newState.location).split(' ').filter(w => w.length >= 4);
+        if (generic.includes(arg) || locWords.includes(arg)) {
+            response = { description: currentRoomData.description(newState), eventType: null };
+            return { response, newState };
+        }
+    }
+
     // ANALIZZA generico — oggetto non trovato
     const genericAnalizza = normalizedCommand.match(/^(analizza) (.+)$/);
     if (genericAnalizza) {
@@ -869,13 +883,16 @@ export const processCommand = (command: string, currentState: PlayerState): { re
     }
 
     /* ── Suggerimento fuzzy ──────────────────────────────────────────────
-       Se il primo token del comando somiglia (Levenshtein ≤ 2) a un verbo
-       noto, suggerisce la correzione invece di mostrare solo "Non capisco". */
+       Se il primo token del comando somiglia (Levenshtein 1-2) a un verbo
+       noto, suggerisce la correzione invece di mostrare solo "Non capisco".
+       `dist >= 1`: se il verbo è GIÀ corretto (dist 0) non ha senso suggerire
+       lo stesso comando ("Intendevi ESAMINA PLANCIA?" su "esamina plancia"):
+       in quel caso il problema è l'oggetto, non il verbo. */
     const firstWord = normalizedCommand.split(' ')[0];
     if (firstWord.length >= 3) {
         const closest = KNOWN_VERBS
             .map(v => ({ verb: v, dist: levenshtein(firstWord, v) }))
-            .filter(x => x.dist <= 2 && x.dist < firstWord.length)
+            .filter(x => x.dist >= 1 && x.dist <= 2 && x.dist < firstWord.length)
             .sort((a, b) => a.dist - b.dist)[0];
         if (closest) {
             // Sostituisce SOLO il primo token (non un'eventuale occorrenza successiva)

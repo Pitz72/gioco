@@ -18,7 +18,9 @@ export const santuarioCentraleRoom: Room = {
                    giocatore, che da testimone diventa anello della catena. */
                 const marks: string[] = [];
                 if (state.flags.incisoCorridoio) marks.push("una quarta tacca alla base di una parete, accanto alle tre che una mano umana aveva inciso prima di te");
-                if (state.flags.incisoArca)      marks.push("un segno sul vetro di una capsula criogenica, accanto al compagno che era arrivato lì molto prima di te");
+                if (state.flags.incisoArca)      marks.push(state.flags.tutaAnalizzata
+                    ? "un segno sul vetro di una capsula criogenica, accanto a L.V. — il compagno umano che era arrivato lì otto secoli prima di te"
+                    : "un segno sul vetro di una capsula criogenica, accanto al compagno che era arrivato lì molto prima di te");
                 if (state.flags.incisoSantuario) marks.push("una riga storta e umana tra le incisioni perfette di una civiltà perduta");
                 let marksParagraph = '';
                 if (marks.length > 0) {

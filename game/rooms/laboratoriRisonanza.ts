@@ -96,7 +96,10 @@ export const laboratoriRisonanzaRoom: Room = {
 
                 if (deepText) {
                     // Lo strato profondo: il dispositivo non si spegne, scende di frequenza.
-                    segments.push(`Poi il dispositivo non si spegne. La frequenza cala ancora, sotto la soglia di prima, e dal fondo emerge un secondo strato — più vicino, più nudo:\n\n${deepText}`);
+                    const lead = toCapture.length > 0
+                        ? "Poi il dispositivo non si spegne. La frequenza cala ancora, sotto la soglia di prima, e dal fondo emerge un secondo strato — più vicino, più nudo:"
+                        : "Riattivi il sintonizzatore sull'eco già noto di questa stanza. Stavolta, però, il dispositivo non si ferma: la frequenza scende sotto la soglia di prima e dal fondo emerge un secondo strato — più vicino, più nudo:";
+                    segments.push(`${lead}\n\n${deepText}`);
                 } else if (deepLockedHint) {
                     segments.push(`(${deepLockedHint})`);
                 }
