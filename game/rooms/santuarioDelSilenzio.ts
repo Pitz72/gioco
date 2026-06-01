@@ -20,7 +20,21 @@ export const santuarioDelSilenzioRoom: Room = {
             synonyms: ['muri', 'pareti', 'incisioni', 'scene'],
             description: "Sono scene incredibilmente dettagliate. Vedi creature alte e sottili che osservano un cielo con tre soli. Le vedi piantare semi luminosi su un pianeta fertile. Le vedi costruire navi immense, identiche a questa, che partono verso le stelle. L'ultima scena raffigura le creature che entrano nelle navi, con un'espressione non di paura, ma di solenne determinazione. È la storia di un esodo, di un sacrificio.",
             details: "L'analisi del materiale rivela che la pietra è stata scolpita con una precisione atomica. Le incisioni non sono state scavate, ma 'piegate' a livello molecolare. La tecnologia è incomprensibile.",
-            isFixed: true
+            isFixed: true,
+            onTranslate: (state) => {
+                const pct = (state.flags.translationProgress as number) ?? 0;
+                if (pct < 18) {
+                    return { description: "Provi a leggere i glifi incisi accanto a ogni scena. La matrice di traduzione restituisce solo forme: linee che si rincorrono, spirali, un ritmo. Le immagini parlano — tre soli, semi di luce, navi in partenza — ma le parole restano chiuse. Ti serve più materiale linguistico prima di poterle aprire.", eventType: 'magic' };
+                }
+                if (pct < 75) {
+                    return { description: "Stavolta qualche parola affiora dai glifi, isolata, come una pietra che spunta dalla bassa marea: «...sanguinarono...», «...non il mondo, ma l'idea...», «...affidare...». Il senso completo ti sfugge ancora, ma non è più soltanto arte: è una frase spezzata, che qualcuno ha voluto lasciare.", eventType: 'magic' };
+                }
+                let d = "I glifi si sciolgono in lingua. Sotto ogni scena scorre una didascalia, e per la prima volta il fregio non racconta soltanto: dice.\n\n«Vedemmo i tre soli sanguinare e non maledicemmo il cielo. Piantammo dove non avremmo raccolto. Salimmo sapendo di non arrivare. Chi troverà queste pareti sappia: non fu una fuga. Fu una semina.»";
+                if (pct >= 100) {
+                    d += "[PAUSE]Un'ultima riga corre al margine inferiore, più piccola, dove la pietra si fa quasi liscia — incisa, forse, da una mano sola, dopo tutte le altre:\n\n«E se la semina ha attecchito, allora qualcuno sta leggendo. Allora non eravamo soli. Allora è bastato.»";
+                }
+                return { description: d, eventType: 'magic' };
+            }
         },
         {
             id: 'altare',
@@ -56,6 +70,12 @@ export const santuarioDelSilenzioRoom: Room = {
                 }
                 state.flags.translationProgress = 75;
                 state.flags.steleAnalizzata = true;
+                // WS5 — secondo percorso deduttivo per la Porta a Tre Punte: la Stele
+                // nomina esplicitamente i «tre soli», quindi chi la analizza apprende
+                // il sistema trino anche senza aver letto la mappa stellare sul Ponte.
+                // Il puzzle finale resta comunque gated da isHologramActive (energia
+                // ripristinata + console attivata): la lore dà il NUMERO, non l'accesso.
+                state.flags.knowsAboutTrinarySystem = true;
                 return {
                     description: "Analizzi la stele. Lo scanner assorbe i dati a una velocità impressionante. È una chiave di volta linguistica, un archivio culturale immenso.[PAUSE]Stato traduzione: 75%\nUna voce quasi perfetta, poetica e malinconica, risuona dal tuo traduttore:\n«Quando i tre soli sanguinarono, sapemmo che il tempo era cenere. Non piangemmo il nostro mondo, perché il mondo è un'idea, e le idee non muoiono. Lo affidammo al Grande Vuoto, perché un nuovo seme potesse attecchire in un terreno non ancora scritto. Il nostro corpo è polvere, ma il nostro ricordo è una stella.»",
                     eventType: 'magic'

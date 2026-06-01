@@ -23,7 +23,21 @@ export const scriptoriumRoom: Room = {
             synonyms: ['nicchie', 'testo', 'ologrammi', 'globi', 'globi di testo'],
             description: "Sono archivi di dati olografici. Il testo è un flusso costante di simboli alieni che cambiano e si ricombinano. Senza una chiave di lettura, sono solo bellissime e incomprensibili opere d'arte digitale.",
             details: "Lo scanner rileva un'enorme densità di dati compressi all'interno dei campi olografici. Stai guardando l'equivalente di intere biblioteche, ma la tecnologia di codifica è al di là della tua comprensione.",
-            isFixed: true
+            isFixed: true,
+            onTranslate: (state) => {
+                const pct = (state.flags.translationProgress as number) ?? 0;
+                if (pct < 18) {
+                    return { description: "I globi turbinano troppo in fretta perché la matrice li agganci. Per un istante un simbolo si ferma, quasi leggibile, poi si dissolve nel flusso. È come voler bere da una cascata.", eventType: 'magic' };
+                }
+                if (pct < 75) {
+                    return { description: "Rallentando il passo dei globi, riesci a fermare qualche intestazione: «registro di chi nacque sotto il primo sole», «atlante delle acque perdute», «canti per chi resta». Non i contenuti — solo i titoli. Ma bastano a misurare l'abisso: qui c'è la memoria intera di un popolo.", eventType: 'magic' };
+                }
+                let d = "Per la prima volta gli indici si aprono davvero. Non è una biblioteca: è tutto. Nascite e lutti, mappe di fiumi che non esistono più, ricette, leggi, ninnenanne, l'esatta inclinazione di tre soli all'alba di un giorno qualunque. Più dati di quanti una vita potrebbe leggerne. Ne sfiori uno a caso: è una filastrocca per addormentare i piccoli. La traduci a mezza voce, nel silenzio, e ti accorgi che la stai quasi cantando.";
+                if (pct >= 100) {
+                    d += "[PAUSE]Un solo globo, in disparte, non è un archivio. È un messaggio lasciato aperto, indirizzato a chi sarebbe venuto:\n\n«Non leggerci tutti. Non potresti, e non devi. Leggine uno, e portalo via con te. Ne basta uno perché non sia stato invano.»";
+                }
+                return { description: d, eventType: 'magic' };
+            }
         },
         {
             id: 'proiettore_rotto',
@@ -39,7 +53,21 @@ export const scriptoriumRoom: Room = {
             synonyms: ['superficie', 'piano', 'utensili', 'strumenti', 'iscrizioni'],
             description: "La superficie è coperta di simboli incisi fisicamente nel materiale — non olografici, non digitali. Sono permanenti, tracciati con uno strumento in profondità, con pressione variabile che suggerisce ritmo e intenzione. Accanto, gli utensili sono disposti nell'ordine di chi sa di aver finito.",
             details: "Lo scanner non riesce a leggere il contenuto — la lingua è la stessa della Stele, ma la densità dei simboli è estrema. Rileva però che queste incisioni sono tra le ultime prodotte in questa stanza. Non un archivio: una firma. L'ultima cosa che qualcuno ha voluto lasciare in una forma che nessuna interruzione di corrente potesse cancellare.",
-            isFixed: true
+            isFixed: true,
+            onTranslate: (state) => {
+                const pct = (state.flags.translationProgress as number) ?? 0;
+                if (pct < 18) {
+                    return { description: "Passi le dita sui solchi mentre la matrice tenta la lettura. Non escono parole, solo la loro forma: pressione decisa, un ritmo che accelera e poi si ferma di colpo. Qualcosa di urgente, e di personale. Ma chiuso.", eventType: 'magic' };
+                }
+                if (pct < 75) {
+                    return { description: "Affiorano poche parole, e tra queste un pronome che torna: «io... io che ho inciso...», «...l'ultima...». Non è il linguaggio impersonale degli archivi. Qui qualcuno parla in prima persona. Da solo.", eventType: 'magic' };
+                }
+                let d = "La firma si apre, e non è un documento: è una voce.\n\n«Io sono l'ultimo che ha scritto qui. Non un re, non un sapiente: soltanto l'ultima mano ancora sveglia. Ho inciso questo nella pietra perché nessun guasto possa cancellarlo: siamo stati. Abbiamo amato il nostro mondo e l'abbiamo lasciato andare. Se mi leggi, di' il nostro nome, anche se non lo conosci. Dillo lo stesso.»";
+                if (pct >= 100) {
+                    d += "[PAUSE]L'ultimo glifo è incompiuto: un solco che parte e non torna. Lo scriba si è fermato a metà del segno e non ha più ripreso. La matrice non ha nulla da tradurre, lì — eppure è la riga che capisci meglio.";
+                }
+                return { description: d, eventType: 'magic' };
+            }
         },
         {
             id: 'disco_pietra',

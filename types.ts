@@ -55,6 +55,7 @@ export interface Item {
 
     onUse?: (state: PlayerState) => CommandHandlerResult;
     onAnalyze?: (state: PlayerState) => CommandHandlerResult; // Per ANALIZZA con side-effects su stato
+    onTranslate?: (state: PlayerState) => CommandHandlerResult; // Per TRADUCI: lettura stratificata in base a translationProgress (sola lettura, nessun side-effect)
     onCombine?: (targetId: string, state: PlayerState) => CommandHandlerResult; // targetId è l'oggetto SU cui usiamo questo oggetto
 }
 

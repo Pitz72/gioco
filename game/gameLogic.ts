@@ -43,7 +43,7 @@ function levenshtein(a: string, b: string): number {
 }
 
 const KNOWN_VERBS = [
-    'guarda', 'esamina', 'analizza', 'prendi', 'raccogli', 'usa', 'attiva',
+    'guarda', 'esamina', 'analizza', 'traduci', 'prendi', 'raccogli', 'usa', 'attiva',
     'tocca', 'parla', 'entra', 'inventario', 'aiuto', 'echi', 'nord', 'sud',
     'est', 'ovest', 'alto', 'basso', 'apri', 'leggi', 'indossa', 'pulisci',
     'nota', 'diario',
@@ -63,6 +63,7 @@ const getHelpText = (): string => {
 - GUARDA / L [oggetto/stanza]
 - ESAMINA / X [oggetto]
 - ANALIZZA [oggetto]
+- TRADUCI [oggetto]: Legge i testi alieni (più la matrice è avanzata, più riveli)
 - VAI [direzione] (N, S, E, O)
 - PRENDI [oggetto]
 - USA [oggetto] SU/CON [bersaglio]
@@ -460,6 +461,13 @@ export const normalizeCommand = (command: string): string => {
         return normalized.replace(/^leggi /, 'analizza ');
     }
 
+    // Alias verbi d'azione (WS5: ridurre il guess-the-verb con sinonimi naturali)
+    if (normalized.startsWith('ispeziona ')) return normalized.replace(/^ispeziona /, 'esamina ');
+    if (normalized.startsWith('osserva '))   return normalized.replace(/^osserva /, 'guarda ');
+    if (normalized.startsWith('studia '))    return normalized.replace(/^studia /, 'analizza ');
+    if (normalized.startsWith('decifra '))   return normalized.replace(/^decifra /, 'traduci ');
+    if (normalized.startsWith('afferra '))   return normalized.replace(/^afferra /, 'prendi ');
+
     // Comandi con argomenti (es. "x oggetto")
     if (normalized.startsWith('x ')) {
         return normalized.replace(/^x /, 'esamina ');
@@ -590,6 +598,38 @@ export const processCommand = (command: string, currentState: PlayerState): { re
     const currentRoomData = gameData[newState.location];
     if (!currentRoomData) {
         response = { description: "ERRORE CRITICO: La stanza non esiste.", eventType: 'error' };
+        return { response, newState };
+    }
+
+    /* ── TRADUCI [oggetto] — lente di lettura dei testi alieni (WS1) ──────────
+       Verbo globale, ma agisce solo sugli oggetti della stanza corrente dotati
+       di onTranslate. La resa è stratificata in base a translationProgress
+       (soglie 18/75/100): più la matrice è avanzata, più il testo si apre.
+       Sola lettura: nessun side-effect sullo stato di gioco.                  */
+    const traduciMatch = normalizedCommand.match(/^(traduci|traduzione) (.+)$/);
+    if (traduciMatch) {
+        const targetName = traduciMatch[2].trim();
+        const target = (currentRoomData.items ?? []).find(i => matchesItemName(i, targetName));
+        if (target?.onTranslate) {
+            response = { ...target.onTranslate(newState) } as GameResponse;
+            response.eventType = response.eventType ?? 'magic';
+            return { response, newState };
+        }
+        if (target) {
+            response = { description: `Su ${target.name} non c'è nulla di scritto da tradurre.`, eventType: 'error' };
+            return { response, newState };
+        }
+        response = { description: `Non vedi niente del genere da tradurre qui.`, eventType: 'error' };
+        return { response, newState };
+    }
+    if (normalizedCommand === 'traduci' || normalizedCommand === 'traduzione') {
+        const translatables = (currentRoomData.items ?? []).filter(i => i.onTranslate);
+        if (translatables.length === 0) {
+            response = { description: "Qui non c'è testo alieno da tradurre. Cerca iscrizioni, bassorilievi, archivi.", eventType: null };
+        } else {
+            const names = translatables.map(i => i.name.toUpperCase()).join(', ');
+            response = { description: `Cosa vuoi tradurre? Qui puoi provare: ${names}. (Più la matrice di traduzione è avanzata, più riveli.)`, eventType: null };
+        }
         return { response, newState };
     }
 

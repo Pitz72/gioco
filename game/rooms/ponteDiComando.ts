@@ -64,6 +64,23 @@ export const ponteDiComandoRoom: Room = {
                 // Il flag knowsAboutTrinarySystem viene settato dal comando ESAMINA MAPPA
                 // definito nella lista commands, che permette il side-effect sullo stato.
                 return { description: "Non puoi usarla, è un ologramma.", eventType: 'error' };
+            },
+            onTranslate: (state) => {
+                if (!state.flags.isHologramActive) {
+                    return { description: "Non c'è nessuna mappa proiettata da tradurre. Il Ponte è ancora inerte.", eventType: 'error' };
+                }
+                const pct = (state.flags.translationProgress as number) ?? 0;
+                if (pct < 18) {
+                    return { description: "Lungo la rotta, accanto a ogni tappa, galleggiano piccole annotazioni in simboli alieni. La matrice non le aggancia: per ora sono solo decorazioni di luce su un viaggio che non sai ancora leggere.", eventType: 'magic' };
+                }
+                if (pct < 75) {
+                    return { description: "Qualche annotazione si lascia leggere a tratti: numeri di cicli, distanze, e una parola sola, ripetuta con insistenza vicino al punto d'arrivo — il tuo sistema solare. Non riesci ancora a renderla, ma è scritta più grande delle altre, come se contasse più di tutto il resto.", eventType: 'magic' };
+                }
+                let d = "Le annotazioni si aprono lungo tutta la rotta: segnavia, un conto alla rovescia di cicli che nessuno avrebbe visto scadere, le coordinate della partenza presso i tre soli. E accanto al tuo sole, finalmente, quella parola ripetuta:\n\n«giardino — qui, se da qualche parte.»";
+                if (pct >= 100) {
+                    d += "[PAUSE]Proprio sopra il tuo sistema solare, in una grafia più piccola, aggiunta dopo, qualcuno ha lasciato una riga che non è una rotta:\n\n«Non torneremo a vedere se è fiorito. Va bene così.»";
+                }
+                return { description: d, eventType: 'magic' };
             }
         },
         {
@@ -156,6 +173,12 @@ export const ponteDiComandoRoom: Room = {
             regex: "^(tocca|attiva|usa|premi) (tre|3) (punte|pulsanti|punti|luci)( (su|della) (porta|pannello))?$", handler: (state) => {
                 if (!state.flags.knowsAboutTrinarySystem) {
                     return { description: "Non sai quale combinazione usare.", eventType: 'error' };
+                }
+                // Il sapere può venire dalla mappa O dalla Stele (WS5), ma il pannello
+                // resta inerte finché il Ponte non è alimentato e risvegliato: la lore
+                // dà il numero, non l'accesso. Preserva l'obbligo di energia (B10).
+                if (!state.flags.isHologramActive) {
+                    return { description: "Sai quante punte attivare — tre, come i loro soli. Ma il pannello della porta è morto: nessuna punta risponde. Il meccanismo resta inerte finché il Ponte non viene alimentato e la console di comando risvegliata.", eventType: 'error' };
                 }
                 if (state.flags.isFinalDoorOpen) {
                     return { description: "La porta è già aperta.", eventType: 'error' };
