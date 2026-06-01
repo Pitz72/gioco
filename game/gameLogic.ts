@@ -1,7 +1,7 @@
 import { PlayerState, GameResponse, Item } from '../types';
 import { gameData } from './gameData';
 import cloneDeep from 'lodash.clonedeep';
-import { ECHO_TEXTS } from './echoData';
+import { ECHO_TEXTS, DEEP_ECHOES, DEEP_ECHO_TEXTS } from './echoData';
 
 // Cache regex compilate a livello di modulo: ogni pattern viene compilato una sola volta.
 const regexCache = new Map<string, RegExp>();
@@ -43,7 +43,7 @@ function levenshtein(a: string, b: string): number {
 }
 
 const KNOWN_VERBS = [
-    'guarda', 'esamina', 'analizza', 'traduci', 'prendi', 'raccogli', 'usa', 'attiva',
+    'guarda', 'esamina', 'analizza', 'traduci', 'incidi', 'prendi', 'raccogli', 'usa', 'attiva',
     'tocca', 'parla', 'entra', 'inventario', 'aiuto', 'echi', 'nord', 'sud',
     'est', 'ovest', 'alto', 'basso', 'apri', 'leggi', 'indossa', 'pulisci',
     'nota', 'diario',
@@ -64,6 +64,7 @@ const getHelpText = (): string => {
 - ESAMINA / X [oggetto]
 - ANALIZZA [oggetto]
 - TRADUCI [oggetto]: Legge i testi alieni (più la matrice è avanzata, più riveli)
+- INCIDI [bersaglio]: Lascia un tuo segno in alcuni luoghi della nave
 - VAI [direzione] (N, S, E, O)
 - PRENDI [oggetto]
 - USA [oggetto] SU/CON [bersaglio]
@@ -272,6 +273,8 @@ function getDiario(state: PlayerState): string {
     if (flags.tutaAnalizzata)        entries.push("▸ MISSIONE AURORA-7\n  'NON SIAMO SOLI — L.V.'");
     if (flags['capsulaAnalizzata'])  entries.push("▸ ARCA BIOLOGICA\n  Ecosistema completo. Tutto perduto.");
     if (state.echoes.length > 0)     entries.push(`▸ ECHI TEMPORALI\n  ${state.echoes.length}/11 registrati.`);
+    const deepCount = DEEP_ECHOES.filter(d => flags[d.id]).length;
+    if (deepCount > 0)               entries.push(`▸ ECHI PROFONDI\n  ${deepCount}/${DEEP_ECHOES.length} ascoltati nel secondo strato.`);
     if (flags.knowsAboutTrinarySystem) entries.push("▸ SISTEMA TRINO K'THARR\n  Tre soli. 'Grande Salto'...");
 
     if (entries.length === 0) return "Il diario di bordo è vuoto. Esplora e usa ANALIZZA.";
@@ -418,13 +421,20 @@ export function getStats(state: PlayerState): string {
                    score >= 40 ? 'RECUPERATORE DI FRAMMENTI' :
                                  'ESPLORATORE CURIOSO';
 
+    // Echi profondi (WS2): mostrati come riconoscimento extra, fuori dal punteggio.
+    const deepCount  = DEEP_ECHOES.filter(d => state.flags[d.id]).length;
+    const totalDeep  = DEEP_ECHOES.length;
+    const deepLine   = deepCount > 0
+        ? `\nEchi profondi:     ${deepCount}/${totalDeep}  ${bar(deepCount, totalDeep)}`
+        : '';
+
     const ln = '─'.repeat(38);
     return `RESOCONTO MISSIONE
 ${ln}
 Stanze esplorate: ${String(visitedCount).padStart(2)}/${totalRooms}  ${bar(visitedCount, totalRooms)}
 Echi temporali:    ${echoCount}/${totalEchoes}  ${bar(echoCount, totalEchoes)}
 Traduzione:       ${String(pct).padStart(3)}%  ${bar(pct, 100)}
-Oggetti analizzati:${String(analyzedCount).padStart(2)}/${totalAnalyzed}  ${bar(analyzedCount, totalAnalyzed)}
+Oggetti analizzati:${String(analyzedCount).padStart(2)}/${totalAnalyzed}  ${bar(analyzedCount, totalAnalyzed)}${deepLine}
 ${ln}
 VALUTAZIONE: ${rating}`;
 }
@@ -467,6 +477,11 @@ export const normalizeCommand = (command: string): string => {
     if (normalized.startsWith('studia '))    return normalized.replace(/^studia /, 'analizza ');
     if (normalized.startsWith('decifra '))   return normalized.replace(/^decifra /, 'traduci ');
     if (normalized.startsWith('afferra '))   return normalized.replace(/^afferra /, 'prendi ');
+    // Verbo della traccia del giocatore (WS3): INCIDI e i suoi sinonimi.
+    if (normalized.startsWith('scrivi '))    return normalized.replace(/^scrivi /, 'incidi ');
+    if (normalized.startsWith('marca '))     return normalized.replace(/^marca /, 'incidi ');
+    if (normalized.startsWith('firma '))     return normalized.replace(/^firma /, 'incidi ');
+    if (normalized === 'scrivi' || normalized === 'marca' || normalized === 'firma' || normalized === 'incide') return 'incidi';
 
     // Comandi con argomenti (es. "x oggetto")
     if (normalized.startsWith('x ')) {
@@ -548,7 +563,16 @@ export const processCommand = (command: string, currentState: PlayerState): { re
             const echoList = newState.echoes
                 .map((id, i) => `[ECO ${i + 1}] ${ECHO_TEXTS[id] ?? id}`)
                 .join('\n\n');
-            response = { description: `ECHI TEMPORALI REGISTRATI (${newState.echoes.length}):\n\n${echoList}`, eventType: 'echo' };
+            // Echi profondi (WS2): elencati a parte, fuori dal conteggio canonico.
+            const deepDiscovered = DEEP_ECHOES.filter(d => newState.flags[d.id]);
+            let deepBlock = '';
+            if (deepDiscovered.length > 0) {
+                const deepList = deepDiscovered
+                    .map((d, i) => `[PROFONDO ${i + 1}] ${DEEP_ECHO_TEXTS[d.id]}`)
+                    .join('\n\n');
+                deepBlock = `\n\n${'─'.repeat(40)}\nECHI PROFONDI (${deepDiscovered.length}/${DEEP_ECHOES.length}):\n\n${deepList}`;
+            }
+            response = { description: `ECHI TEMPORALI REGISTRATI (${newState.echoes.length}):\n\n${echoList}${deepBlock}`, eventType: 'echo' };
         }
         return { response, newState };
     }
@@ -796,6 +820,17 @@ export const processCommand = (command: string, currentState: PlayerState): { re
             response = { description: `Usare ${srcName} su ${genericUsaSuY[3]} non sembra avere alcun effetto.`, eventType: 'error' };
         } else {
             response = { description: `Non hai '${srcName}'.`, eventType: 'error' };
+        }
+        return { response, newState };
+    }
+
+    // INCIDI generico (WS3) — i punti-traccia specifici sono room command e hanno
+    // già avuto la precedenza; qui cadono i tentativi in luoghi senza un senso.
+    if (/^incidi( .+)?$/.test(normalizedCommand)) {
+        if (!newState.inventory.includes("Taglierina al Plasma")) {
+            response = { description: "Non hai con te niente che possa incidere alcunché.", eventType: 'error' };
+        } else {
+            response = { description: "Sollevi la taglierina, poi ti fermi. Non qui: non ogni parete merita un segno, e lasciarne uno a caso somiglierebbe più a un graffio che a un gesto. Alcuni luoghi, su questa nave, lo chiedono. Questo no.", eventType: null };
         }
         return { response, newState };
     }

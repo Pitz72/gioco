@@ -216,6 +216,20 @@ export const corridoioPrincipaleRoom: Room = {
         { regex: "^(apri|usa|tocca) (porta ovest)$", handler: () => ({ description: "Appoggi la mano sul complesso simbolo a stella. A differenza delle altre, questa porta non reagisce. Rimane fredda, inerte e sigillata. I tre incavi alla base suggeriscono che serva qualcos'altro.", eventType: 'error' }) },
         { regex: "^(tocca) (pareti|muro|soffitto|pavimento)$", handler: () => ({ description: "La superficie è liscia e stranamente tiepida, come pelle. Senti una vibrazione debolissima, come un respiro lentissimo." }) },
         { regex: "^(tocca) (tacche|segni|incisioni|marchi|graffi)$", handler: () => ({ description: "Le tacche sono poco profonde ma precise. Il materiale intorno non si è sgretolato — chi le ha fatte sapeva quanto premere. Tre colpi. Non uno di più." }) },
+        // INCIDI (WS3) — la quarta tacca accanto alle tre umane. Non sblocca nulla:
+        // cambia il mondo e si riflette nell'epilogo (santuarioCentrale).
+        {
+            regex: "^incidi( (tacca|tacche|quarta tacca|segno|segni|parete|parete est|muro|nome))?$", handler: (state) => {
+                if (!state.inventory.includes("Taglierina al Plasma")) {
+                    return { description: "Ti servirebbe uno strumento da taglio per incidere queste pareti. Non hai ancora nulla del genere.", eventType: 'error' };
+                }
+                if (state.flags.incisoCorridoio) {
+                    return { description: "Il tuo segno è già lì: quattro tacche, ora, alla base della parete est. Tre di chi è passato prima di te, e una tua.", eventType: 'error' };
+                }
+                state.flags.incisoCorridoio = true;
+                return { description: "Sollevi la taglierina al plasma e la regoli al minimo. Con un gesto lento incidi una quarta linea accanto alle tre, alla base della parete est. Il biopolimero K'tharr resiste, poi cede in un solco netto e sottile.[PAUSE]Quattro tacche, adesso. Non sai chi abbia fatto le prime tre, né quanto tempo fa, né se sia mai tornato. Ma hai voluto rispondere comunque, nell'unico modo possibile: anch'io sono stato qui.", eventType: 'magic' };
+            }
+        },
         {
             regex: "^(esamina|guarda|analizza) porta$", handler: () => ({
                 description: "Ci sono diverse porte: una a NORD, una a SUD, una grande porta a OVEST e quella da cui sei entrato a EST. Usa 'esamina porta nord', 'esamina porta sud', 'esamina porta ovest' o 'esamina porta est' per esaminarle singolarmente.",

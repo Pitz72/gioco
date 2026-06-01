@@ -12,6 +12,22 @@ export const santuarioCentraleRoom: Room = {
         {
             regex: "^(parla|parla su|parla con)( anziano| ologramma| figura)?$", handler: (state) => {
                 state.flags.hasHeardMonologue = true;
+
+                /* Traccia del giocatore (WS3): l'epilogo riconosce i segni lasciati
+                   con INCIDI. Non cambia l'esito — dà un footprint allo stance del
+                   giocatore, che da testimone diventa anello della catena. */
+                const marks: string[] = [];
+                if (state.flags.incisoCorridoio) marks.push("una quarta tacca alla base di una parete, accanto alle tre che una mano umana aveva inciso prima di te");
+                if (state.flags.incisoArca)      marks.push("un segno sul vetro di una capsula criogenica, accanto al compagno che era arrivato lì molto prima di te");
+                if (state.flags.incisoSantuario) marks.push("una riga storta e umana tra le incisioni perfette di una civiltà perduta");
+                let marksParagraph = '';
+                if (marks.length > 0) {
+                    const elenco = marks.length === 1
+                        ? marks[0]
+                        : marks.slice(0, -1).join('; ') + '; e ' + marks[marks.length - 1];
+                    marksParagraph = `[PAUSE]\nE poi c'è quello che hai lasciato tu, là dietro, nel buio in cui il Relitto è svanito: ${elenco}. Non cambieranno niente. Forse sono già polvere, insieme alla nave. Ma li hai fatti lo stesso — per la stessa ragione per cui qualcuno, prima di te, aveva inciso tre tacche in una parete che nessuno avrebbe più letto. Perché essere passati conta, anche quando non guarda nessuno.\n\nNon sei più soltanto un testimone. Sei un anello della catena.\n`;
+                }
+
                 return {
                     description: `(La figura non muove le labbra, ma le parole non sono un suono. Sono un pensiero che fiorisce direttamente nella tua mente, limpido e completo.)
 «Creatura di carbonio... Figlio delle Stelle... Benvenuto.»
@@ -46,7 +62,7 @@ Un'eredità. Un segreto. Una responsabilità.
 La rotta per la colonia di Europa è ancora lì, che ti aspetta. Ma ora, il carico più prezioso che trasporti non è nelle casse nella stiva.
 
 È qui, con te, sulla plancia.
-
+${marksParagraph}
 <span style="color:var(--p-bright);font-size:2.2rem;display:block;text-align:center;margin-top:1.5rem;text-shadow:0 0 12px var(--p-glow-a);">FINE</span>`
                 };
             }

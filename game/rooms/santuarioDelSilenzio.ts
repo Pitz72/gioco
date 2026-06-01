@@ -100,6 +100,20 @@ export const santuarioDelSilenzioRoom: Room = {
         { regex: "^(tocca) (bassorilievi|muri|pareti|incisioni|scene)$", handler: () => ({ description: "Le dita seguono i solchi delle incisioni. La pietra è levigata, ogni taglio perfetto. Senti sotto le dita la storia di una civiltà morta — creature che guardano tre soli, semi che germogliano tra le stelle, navi che partono verso l'infinito. Un epitaffio scolpito nell'eternità." }) },
         { regex: "^(tocca) (altare|pietra|cilindro|incavo|centro)$", handler: () => ({ description: "Appoggi la mano sull'altare. La pietra nera assorbe la luce e il calore. È fredda, ma c'è qualcosa sotto — una risonanza appena percettibile, come se la pietra ricordasse tutte le mani che l'hanno toccata prima di te." }) },
         { regex: "^tocca$", handler: () => ({ description: "Sei nel Santuario del Silenzio. Puoi toccare i bassorilievi o l'altare al centro della stanza." }) },
+        // INCIDI (WS3) — una riga umana tra le incisioni K'tharr. Non sblocca nulla:
+        // cambia il mondo e si riflette nell'epilogo.
+        {
+            regex: "^incidi( (bassorilievi|parete|pareti|muro|incisioni|scene|segno|nome|riga))?$", handler: (state) => {
+                if (!state.inventory.includes("Taglierina al Plasma")) {
+                    return { description: "Non hai uno strumento per incidere.", eventType: 'error' };
+                }
+                if (state.flags.incisoSantuario) {
+                    return { description: "La tua riga è già lì, in basso, dove il fregio lasciava un palmo di pietra nuda. Goffa, umana, tua. Non l'hai cancellata.", eventType: 'error' };
+                }
+                state.flags.incisoSantuario = true;
+                return { description: "Cerchi un angolo libero, in basso, dove il fregio K'tharr lascia un palmo di pietra nuda. Con la taglierina incidi una riga tutta tua — storta accanto alla loro precisione atomica, una grafia umana tra simboli piegati a livello molecolare.[PAUSE]Non racconta un esodo, non custodisce un sapere. Dice soltanto, nella tua lingua, che sei passato di qui e che hai capito. È pochissimo, di fianco a tutto il resto. Ma è vero, ed è tuo.", eventType: 'magic' };
+            }
+        },
         // USA DISCO SU ALTARE
         {
             regex: "^(usa) (disco|disco di pietra) su (altare|incavo)$", handler: (state) => {

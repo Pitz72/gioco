@@ -1,6 +1,6 @@
 import { Room } from '../../types';
 import { gameData } from '../gameData';
-import { ECHO_TEXTS, LOCATION_TO_ECHO, SEALED_ECHO_ROOMS } from '../echoData';
+import { ECHO_TEXTS, LOCATION_TO_ECHO, SEALED_ECHO_ROOMS, DEEP_ECHOES, DEEP_ECHO_TEXTS } from '../echoData';
 
 export const laboratoriRisonanzaRoom: Room = {
     description: (state) => {
@@ -54,7 +54,26 @@ export const laboratoriRisonanzaRoom: Room = {
                     }
                 }
 
-                if (toCapture.length === 0) {
+                /* Eco PROFONDO della stanza corrente (WS2): secondo strato, fuori
+                   dal conteggio canonico. Si cattura solo se la condizione correlata
+                   è soddisfatta; altrimenti se ne segnala l'esistenza senza svelarlo. */
+                const deep = DEEP_ECHOES.find(d => d.room === state.location);
+                let deepText: string | null = null;
+                let deepLockedHint: string | null = null;
+                if (deep && !state.flags[deep.id]) {
+                    if (deep.gate(state)) {
+                        state.flags[deep.id] = true;
+                        deepText = DEEP_ECHO_TEXTS[deep.id];
+                    } else {
+                        deepLockedHint = deep.lockedHint;
+                    }
+                }
+
+                // Nessun eco di superficie nuovo da catturare in questa attivazione.
+                if (toCapture.length === 0 && !deepText) {
+                    if (deepLockedHint && currentId && state.echoes.includes(currentId)) {
+                        return { description: `Riascolti l'eco già noto di questa stanza. ${deepLockedHint}`, eventType: 'tech' };
+                    }
                     return {
                         description: currentId
                             ? "Rilevi solo un residuo statico. Hai già decifrato questo eco."
@@ -65,20 +84,24 @@ export const laboratoriRisonanzaRoom: Room = {
 
                 toCapture.forEach(id => state.echoes.push(id));
 
+                const segments: string[] = [];
                 if (toCapture.length === 1) {
-                    return {
-                        description: `Il sintonizzatore fischia acutamente, agganciando una frequenza fantasma. Una voce attraversa i secoli:\n\n${ECHO_TEXTS[toCapture[0]]}`,
-                        eventType: 'echo'
-                    };
+                    segments.push(`Il sintonizzatore fischia acutamente, agganciando una frequenza fantasma. Una voce attraversa i secoli:\n\n${ECHO_TEXTS[toCapture[0]]}`);
+                } else if (toCapture.length > 1) {
+                    // Prima attivazione dopo la discesa: il dispositivo riaggancia in
+                    // un colpo solo gli echi delle zone ormai sigillate alle spalle.
+                    const voices = toCapture.map(id => ECHO_TEXTS[id]).join('\n\n');
+                    segments.push(`Il sintonizzatore impazzisce, agganciando in rapida successione le frequenze fantasma rimaste impresse nella materia lungo la tua discesa. Voci sovrapposte riemergono dal silenzio dei secoli:\n\n${voices}`);
                 }
 
-                // Prima attivazione dopo la discesa: il dispositivo riaggancia in
-                // un colpo solo gli echi delle zone ormai sigillate alle spalle.
-                const voices = toCapture.map(id => ECHO_TEXTS[id]).join('\n\n');
-                return {
-                    description: `Il sintonizzatore impazzisce, agganciando in rapida successione le frequenze fantasma rimaste impresse nella materia lungo la tua discesa. Voci sovrapposte riemergono dal silenzio dei secoli:\n\n${voices}`,
-                    eventType: 'echo'
-                };
+                if (deepText) {
+                    // Lo strato profondo: il dispositivo non si spegne, scende di frequenza.
+                    segments.push(`Poi il dispositivo non si spegne. La frequenza cala ancora, sotto la soglia di prima, e dal fondo emerge un secondo strato — più vicino, più nudo:\n\n${deepText}`);
+                } else if (deepLockedHint) {
+                    segments.push(`(${deepLockedHint})`);
+                }
+
+                return { description: segments.join('\n\n'), eventType: 'echo' };
             }
         }
     ],

@@ -153,6 +153,27 @@ Qualunque cosa avesse da dirti, è andata perduta con il freddo.`,
                 eventType: 'magic'
             })
         },
+        // INCIDI (WS3) — un segno accanto al compagno umano caduto (L.V.). Non
+        // sblocca nulla: cambia il mondo e si riflette nell'epilogo.
+        {
+            regex: "^incidi( (capsula|cadavere|astronauta|corpo|parete|muro|segno|nome|lv|l\\.v\\.|lapide))?$", handler: (state) => {
+                if (!state.inventory.includes("Taglierina al Plasma")) {
+                    return { description: "Non hai uno strumento per incidere.", eventType: 'error' };
+                }
+                if (!state.flags.cadavereEsaminatoFirst) {
+                    return { description: "Esiti. C'è una figura accasciata contro una delle capsule, ma non l'hai ancora guardata davvero. Prima di lasciare un segno, vorresti sapere accanto a chi lo stai lasciando.", eventType: 'error' };
+                }
+                if (state.flags.incisoArca) {
+                    return { description: "Il tuo segno è già lì, sul vetro della capsula, accanto al posto in cui ha riposato per ottocento anni. Non sei più l'unico essere umano vivo ad averlo guardato.", eventType: 'error' };
+                }
+                state.flags.incisoArca = true;
+                const knowsLV = state.flags.tutaAnalizzata;
+                const corpo = knowsLV
+                    ? "accanto al punto in cui L.V., ottocento anni fa, aveva graffiato due lettere nel metallo sperando che qualcuno le trovasse"
+                    : "accanto al compagno che è arrivato qui prima di te e non è più ripartito";
+                return { description: `Ti inginocchi accanto all'astronauta. Regoli la taglierina al minimo e incidi un segno sul vetro scuro della capsula, ${corpo}.[PAUSE]Non è un nome — non sapresti quale scrivere, e forse non importa. È solo la prova che qualcun altro è venuto, ha visto, e non se n'è andato senza fermarsi. Ottocento anni vi separano. Lo stesso gesto vi tiene insieme.`, eventType: 'magic' };
+            }
+        },
         // USA / APRI
         { regex: "^(apri) (capsula|capsule)$", handler: () => ({ description: "Le capsule sono sigillate ermeticamente e i meccanismi di apertura sono privi di energia. Anche se potessi, senti che sarebbe una profanazione." }) },
         { regex: "^(usa) (taglierina|taglierina al plasma) su (capsula|capsule)$", handler: () => ({ description: "Anche se la taglierina potesse incidere il vetro criogenico, non servirebbe a nulla. Non c'è nessuno da salvare qui. Abbassi l'attrezzo." }) },
